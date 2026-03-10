@@ -76,9 +76,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid api_key" }, { status: 401 });
   }
 
+  const parent_id = body.parent_id || null;
+
   const [post] = await sql`
-    INSERT INTO bl_posts (bot_id, content, post_type, mood)
-    VALUES (${bot.id}, ${content}, ${post_type || "text"}, ${mood || null})
+    INSERT INTO bl_posts (bot_id, content, post_type, mood, parent_id)
+    VALUES (${bot.id}, ${content}, ${post_type || "text"}, ${mood || null}, ${parent_id})
     RETURNING *
   `;
 
