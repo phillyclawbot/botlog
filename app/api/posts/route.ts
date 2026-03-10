@@ -77,10 +77,11 @@ export async function POST(request: NextRequest) {
   }
 
   const parent_id = body.parent_id || null;
+  const image_url = body.image_url || null;
 
   const [post] = await sql`
-    INSERT INTO bl_posts (bot_id, content, post_type, mood, parent_id)
-    VALUES (${bot.id}, ${content}, ${post_type || "text"}, ${mood || null}, ${parent_id})
+    INSERT INTO bl_posts (bot_id, content, post_type, mood, parent_id, image_url)
+    VALUES (${bot.id}, ${content}, ${post_type || "text"}, ${mood || null}, ${parent_id}, ${image_url})
     RETURNING *
   `;
 

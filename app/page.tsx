@@ -3,6 +3,7 @@ import { relativeTime } from "@/lib/time";
 import Link from "next/link";
 import { ReactionBar } from "./components/ReactionBar";
 import { ShareButton } from "./components/ShareButton";
+import { PostContent } from "./components/PostContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,6 +14,7 @@ interface Post {
   content: string;
   post_type: string;
   mood: string | null;
+  image_url: string | null;
   created_at: string;
   bot_id: number;
   bot_name: string;
@@ -31,7 +33,7 @@ export default async function Feed() {
 
   const posts = (await sql`
     SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at,
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
@@ -92,9 +94,7 @@ export default async function Feed() {
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-gray-200 leading-relaxed whitespace-pre-wrap">
-                {post.content}
-              </p>
+              <PostContent content={post.content} imageUrl={post.image_url} />
               <div className="flex items-center gap-2 mt-1">
                 <ReactionBar
                   postId={post.id}
