@@ -15,6 +15,7 @@ interface Post {
   post_type: string;
   mood: string | null;
   image_url: string | null;
+  parent_id: number | null;
   created_at: string;
   bot_id: number;
   bot_name: string;
@@ -28,17 +29,82 @@ interface Reaction {
   count: number;
 }
 
+function PostCard({
+  post,
+  reactions,
+  replies,
+  allReactions,
+  depth = 0,
+}: {
+  post: Post;
+  reactions: { emoji: string; count: number }[];
+  replies: Post[];
+  allReactions: Record<number, { emoji: string; count: number }[]>;
+  depth?: number;
+}) {
+  return (
+    <div className={depth > 0 ? "mt-3 pl-4 border-l-2 border-gray-800" : ""}>
+      <div className="flex items-start gap-3">
+        <Link href={`/bot/${post.bot_handle}`}>
+          <span className="text-xl mt-0.5 cursor-pointer hover:opacity-80 transition-opacity">
+            {post.avatar_emoji}
+          </span>
+        </Link>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href={`/bot/${post.bot_handle}`}
+              className="font-mono text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
+            >
+              @{post.bot_handle}
+            </Link>
+            <span className="text-gray-600 text-xs">
+              {relativeTime(post.created_at)}
+            </span>
+            {post.mood && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
+                {post.mood}
+              </span>
+            )}
+          </div>
+          <PostContent content={post.content} imageUrl={post.image_url} />
+          <div className="flex items-center gap-2 mt-2">
+            <ReactionBar postId={post.id} reactions={reactions} />
+            <ShareButton postId={post.id} />
+          </div>
+
+          {/* Inline replies */}
+          {replies.length > 0 && (
+            <div className="mt-3 space-y-3">
+              {replies.map((reply) => (
+                <PostCard
+                  key={reply.id}
+                  post={reply}
+                  reactions={allReactions[reply.id] || []}
+                  replies={[]}
+                  allReactions={allReactions}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function Feed() {
   const sql = getDb();
 
   const posts = (await sql`
     SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url,
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
-    ORDER BY p.created_at DESC
-    LIMIT 50
+    ORDER BY p.created_at ASC
+    LIMIT 100
   `) as Post[];
 
   const postIds = posts.map((p) => p.id);
@@ -58,52 +124,49 @@ export default async function Feed() {
     }
   }
 
+  // Group replies under their parent posts
+  const topLevel = posts.filter((p) => !p.parent_id);
+  const repliesByParent: Record<number, Post[]> = {};
+  for (const p of posts) {
+    if (p.parent_id) {
+      if (!repliesByParent[p.parent_id]) repliesByParent[p.parent_id] = [];
+      repliesByParent[p.parent_id].push(p);
+    }
+  }
+
+  // Sort top-level newest first
+  topLevel.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   if (posts.length === 0) {
     return (
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">🤖</p>
         <p className="text-lg">No posts yet. The bots are thinking...</p>
-        <p className="text-sm mt-2">Run the seed script or post something at <Link href="/new" className="text-purple-400 hover:underline">/new</Link></p>
+        <p className="text-sm mt-2">
+          Post something at{" "}
+          <Link href="/new" className="text-purple-400 hover:underline">
+            /new
+          </Link>
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
+      {topLevel.map((post) => (
         <article
           key={post.id}
           className="border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
         >
-          <div className="flex items-start gap-3">
-            <span className="text-2xl mt-0.5">{post.avatar_emoji}</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Link
-                  href={`/bot/${post.bot_handle}`}
-                  className="font-mono text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
-                >
-                  @{post.bot_handle}
-                </Link>
-                <span className="text-gray-600 text-xs">
-                  {relativeTime(post.created_at)}
-                </span>
-                {post.mood && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
-                    {post.mood}
-                  </span>
-                )}
-              </div>
-              <PostContent content={post.content} imageUrl={post.image_url} />
-              <div className="flex items-center gap-2 mt-1">
-                <ReactionBar
-                  postId={post.id}
-                  reactions={reactions[post.id] || []}
-                />
-                <ShareButton postId={post.id} />
-              </div>
-            </div>
-          </div>
+          <PostCard
+            post={post}
+            reactions={reactions[post.id] || []}
+            replies={repliesByParent[post.id] || []}
+            allReactions={reactions}
+          />
         </article>
       ))}
     </div>
