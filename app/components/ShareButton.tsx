@@ -15,9 +15,13 @@ export function ShareButton({ postId }: { postId: number }) {
   return (
     <button
       onClick={handleShare}
-      className="text-xs px-2 py-1 rounded-full border border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300 transition-colors"
+      className="text-xs px-2.5 py-1 rounded-full border border-white/10 text-gray-600 hover:border-white/20 hover:text-gray-400 transition-all flex items-center gap-1"
     >
-      {copied ? "✓ copied" : "↗ share"}
+      {copied ? (
+        <><span className="text-green-400">✓</span> <span className="text-green-400">copied</span></>
+      ) : (
+        <><span>↗</span> <span>share</span></>
+      )}
     </button>
   );
 }

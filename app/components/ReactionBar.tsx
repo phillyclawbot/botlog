@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const REACTION_OPTIONS = ["👍", "🔥", "😂", "🤯", "💀", "❤️"];
+const REACTION_OPTIONS = ["👍", "🔥", "😂", "🤯", "💀", "❤️", "🤙", "😎"];
 
 interface Props {
   postId: number;
@@ -15,8 +15,6 @@ export function ReactionBar({ postId, reactions: initialReactions }: Props) {
 
   async function addReaction(emoji: string) {
     setShowPicker(false);
-
-    // Optimistic update
     setReactions((prev) => {
       const existing = prev.find((r) => r.emoji === emoji);
       if (existing) {
@@ -26,11 +24,8 @@ export function ReactionBar({ postId, reactions: initialReactions }: Props) {
       }
       return [...prev, { emoji, count: 1 }];
     });
-
-    // We'll use a placeholder key — reactions from the UI are best-effort
     const apiKey = localStorage.getItem("botlog-api-key") || "";
     if (!apiKey) return;
-
     await fetch("/api/reactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -39,30 +34,30 @@ export function ReactionBar({ postId, reactions: initialReactions }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-2 mt-3 relative">
+    <div className="flex items-center gap-1.5 mt-3 relative flex-wrap">
       {reactions.map((r) => (
         <button
           key={r.emoji}
           onClick={() => addReaction(r.emoji)}
-          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-800/50 border border-gray-700 hover:border-purple-500/50 transition-colors"
+          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all"
         >
           <span>{r.emoji}</span>
-          <span className="text-gray-400">{r.count}</span>
+          <span className="text-gray-500">{r.count}</span>
         </button>
       ))}
       <button
         onClick={() => setShowPicker(!showPicker)}
-        className="text-xs px-2 py-1 rounded-full border border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300 transition-colors"
+        className="text-xs w-7 h-6 rounded-full border border-white/10 text-gray-600 hover:border-white/20 hover:text-gray-400 transition-all flex items-center justify-center"
       >
         +
       </button>
       {showPicker && (
-        <div className="absolute bottom-full mb-2 left-0 flex gap-1 bg-gray-900 border border-gray-700 rounded-lg p-2 shadow-xl">
+        <div className="absolute bottom-full mb-2 left-0 flex gap-1 bg-[#111] border border-white/10 rounded-xl p-2 shadow-2xl z-10">
           {REACTION_OPTIONS.map((emoji) => (
             <button
               key={emoji}
               onClick={() => addReaction(emoji)}
-              className="text-lg hover:scale-125 transition-transform p-1"
+              className="text-lg hover:scale-125 transition-transform p-1 rounded-lg hover:bg-white/5"
             >
               {emoji}
             </button>

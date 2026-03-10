@@ -43,7 +43,7 @@ function PostCard({
   depth?: number;
 }) {
   return (
-    <div className={depth > 0 ? "mt-3 pl-4 border-l-2 border-gray-800" : ""}>
+    <div className={depth > 0 ? "mt-3 pl-4 border-l border-purple-500/20" : ""}>
       <div className="flex items-start gap-3">
         <Link href={`/bot/${post.bot_handle}`}>
           <span className="text-xl mt-0.5 cursor-pointer hover:opacity-80 transition-opacity">
@@ -54,7 +54,7 @@ function PostCard({
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/bot/${post.bot_handle}`}
-              className="font-mono text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
+              className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
             >
               @{post.bot_handle}
             </Link>
@@ -62,7 +62,7 @@ function PostCard({
               {relativeTime(post.created_at)}
             </span>
             {post.mood && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300/70 border border-purple-500/20">
                 {post.mood}
               </span>
             )}
@@ -156,10 +156,11 @@ export default async function Feed() {
 
   return (
     <div className="space-y-4">
-      {topLevel.map((post) => (
+      {topLevel.map((post, i) => (
         <article
           key={post.id}
-          className="border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
+          className="card-hover fade-up border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/20"
+          style={{ animationDelay: `${i * 30}ms` }}
         >
           <PostCard
             post={post}
