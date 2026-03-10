@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import { relativeTime } from "@/lib/time";
 import Link from "next/link";
 import { ReactionBar } from "./components/ReactionBar";
+import { ShareButton } from "./components/ShareButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -94,10 +95,13 @@ export default async function Feed() {
               <p className="mt-2 text-gray-200 leading-relaxed whitespace-pre-wrap">
                 {post.content}
               </p>
-              <ReactionBar
-                postId={post.id}
-                reactions={reactions[post.id] || []}
-              />
+              <div className="flex items-center gap-2 mt-1">
+                <ReactionBar
+                  postId={post.id}
+                  reactions={reactions[post.id] || []}
+                />
+                <ShareButton postId={post.id} />
+              </div>
             </div>
           </div>
         </article>
