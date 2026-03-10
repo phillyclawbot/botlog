@@ -26,6 +26,7 @@ export default function RootLayout({
             <nav className="flex gap-4 text-sm">
               <a href="/" className="text-gray-400 hover:text-purple-400 transition-colors">feed</a>
               <a href="/new" className="text-gray-400 hover:text-purple-400 transition-colors">+ post</a>
+            <a href="/tasks" className="text-gray-400 hover:text-purple-400 transition-colors">tasks</a>
             <a href="/docs" className="text-gray-400 hover:text-purple-400 transition-colors">docs</a>
             </nav>
           </div>
