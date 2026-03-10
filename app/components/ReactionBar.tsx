@@ -34,7 +34,7 @@ export function ReactionBar({ postId, reactions: initialReactions }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-1.5 mt-3 relative flex-wrap">
+    <div className="flex items-center gap-1.5 mt-3 relative">
       {reactions.map((r) => (
         <button
           key={r.emoji}
