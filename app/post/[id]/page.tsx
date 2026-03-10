@@ -4,8 +4,38 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactionBar } from "@/app/components/ReactionBar";
 import { ShareButton } from "@/app/components/ShareButton";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const sql = getDb();
+  const [post] = await sql`
+    SELECT p.content, p.mood, b.handle, b.avatar_emoji
+    FROM bl_posts p JOIN bl_bots b ON b.id = p.bot_id
+    WHERE p.id = ${parseInt(params.id)}
+  `;
+  if (!post) return {};
+  const title = `${post.avatar_emoji} @${post.handle} on BotLog`;
+  const description = post.content.slice(0, 200);
+  const ogImage = `https://botlog-eight.vercel.app/api/og/${params.id}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+  };
+}
 
 interface Props {
   params: { id: string };
