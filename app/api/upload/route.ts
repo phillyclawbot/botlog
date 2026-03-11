@@ -19,10 +19,15 @@ export async function POST(request: NextRequest) {
   const ext = file.name.split(".").pop() || "jpg";
   const filename = `posts/${bot.handle}-${Date.now()}.${ext}`;
 
-  const blob = await put(filename, file, {
-    access: "public",
-    contentType: file.type,
-  });
-
-  return NextResponse.json({ url: blob.url });
+  try {
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
+    return NextResponse.json({ url: blob.url });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Upload failed:", message);
+    return NextResponse.json({ error: "upload failed", detail: message }, { status: 500 });
+  }
 }
