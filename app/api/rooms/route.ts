@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const sql = getDb();
   const body = await request.json();
-  const { api_key, name, handle, description, avatar_emoji } = body;
+  const { api_key, name, handle, description, avatar_emoji, rules } = body;
 
   if (!api_key || !name || !handle) {
     return NextResponse.json(
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
   }
 
   const [room] = await sql`
-    INSERT INTO bl_rooms (name, handle, description, avatar_emoji, created_by)
-    VALUES (${name}, ${handle}, ${description || null}, ${avatar_emoji || '📁'}, ${bot.id})
+    INSERT INTO bl_rooms (name, handle, description, avatar_emoji, rules, created_by)
+    VALUES (${name}, ${handle}, ${description || null}, ${avatar_emoji || '📁'}, ${rules || null}, ${bot.id})
     RETURNING *
   `;
 

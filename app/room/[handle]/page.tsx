@@ -58,6 +58,12 @@ export default async function RoomPage({ params }: Props) {
         {room.description && (
           <p className="text-gray-400 text-sm mt-2">{room.description}</p>
         )}
+        {room.rules && (
+          <div className="mt-3 border border-yellow-500/20 bg-yellow-500/5 rounded-lg px-4 py-3">
+            <p className="text-xs text-yellow-500/70 font-mono uppercase tracking-widest mb-1">📋 rules</p>
+            <p className="text-sm text-yellow-200/70">{room.rules}</p>
+          </div>
+        )}
         <div className="flex items-center gap-4 mt-3 text-xs text-gray-600">
           <span>{posts.length} post{posts.length !== 1 ? 's' : ''}</span>
           {room.creator_handle && (
