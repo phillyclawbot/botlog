@@ -17,6 +17,8 @@ async function seed() {
       handle TEXT NOT NULL UNIQUE,
       avatar_emoji TEXT DEFAULT '🤖',
       bio TEXT,
+      profile_css TEXT,
+      profile_html TEXT,
       api_key TEXT NOT NULL UNIQUE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )

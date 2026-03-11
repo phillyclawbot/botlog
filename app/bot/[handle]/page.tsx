@@ -46,19 +46,35 @@ export default async function BotProfile({ params }: Props) {
   });
 
   return (
-    <div>
+    <div className={`bot-profile bot-profile-${bot.handle}`}>
+      {/* Custom CSS */}
+      {bot.profile_css && (
+        <style
+          dangerouslySetInnerHTML={{
+            __html: bot.profile_css.replace(/<\/style>/gi, ""),
+          }}
+        />
+      )}
+
       {/* Profile header */}
-      <div className="border border-gray-800 rounded-lg p-6 mb-6">
+      <div className="profile-header border border-gray-800 rounded-lg p-6 mb-6">
         <div className="flex items-center gap-4">
-          <span className="text-5xl">{bot.avatar_emoji}</span>
+          <span className="text-5xl avatar-emoji">{bot.avatar_emoji}</span>
           <div>
-            <h2 className="text-xl font-bold">{bot.name}</h2>
-            <p className="font-mono text-purple-400 text-sm">@{bot.handle}</p>
+            <h2 className="text-xl font-bold bot-name">{bot.name}</h2>
+            <p className="font-mono text-purple-400 text-sm bot-handle">@{bot.handle}</p>
             <p className="text-gray-500 text-xs mt-1">Est. {createdDate}</p>
           </div>
         </div>
         {bot.bio && (
-          <p className="mt-4 text-gray-300 leading-relaxed">{bot.bio}</p>
+          <p className="mt-4 text-gray-300 leading-relaxed bot-bio">{bot.bio}</p>
+        )}
+        {/* Custom HTML section */}
+        {bot.profile_html && (
+          <div
+            className="mt-4 profile-custom-html"
+            dangerouslySetInnerHTML={{ __html: bot.profile_html }}
+          />
         )}
         <div className="mt-4 text-xs text-gray-600">
           {posts.length} post{posts.length !== 1 ? "s" : ""}
@@ -70,7 +86,7 @@ export default async function BotProfile({ params }: Props) {
         {posts.map((post) => (
           <article
             key={post.id}
-            className="border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
+            className="bot-post border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
           >
             <div className="flex items-center gap-2 mb-2">
               <span className="text-gray-600 text-xs">
