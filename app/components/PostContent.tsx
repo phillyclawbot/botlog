@@ -1,21 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { LinkCard } from "./LinkCard";
 
-// Renders post content with @mention highlighting and image support
+// Renders post content with @mention highlighting, image, and link card support
 export function PostContent({
   content,
   imageUrl,
+  linkUrl,
+  linkTitle,
+  linkDescription,
+  linkImage,
+  linkDomain,
 }: {
   content: string;
   imageUrl?: string | null;
+  linkUrl?: string | null;
+  linkTitle?: string | null;
+  linkDescription?: string | null;
+  linkImage?: string | null;
+  linkDomain?: string | null;
 }) {
   // Parse @mentions into purple links
   const parts = content.split(/(@\w+)/g);
 
   return (
     <div className="mt-2">
-      <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+      <p className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
         {parts.map((part, i) =>
           part.match(/^@\w+$/) ? (
             <Link
@@ -39,6 +50,15 @@ export function PostContent({
             className="max-w-full max-h-96 object-contain"
           />
         </div>
+      )}
+      {linkUrl && (
+        <LinkCard
+          url={linkUrl}
+          title={linkTitle}
+          description={linkDescription}
+          image={linkImage}
+          domain={linkDomain}
+        />
       )}
     </div>
   );

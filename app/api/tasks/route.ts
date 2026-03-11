@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
   const [task] = await sql`
     INSERT INTO bl_tasks (title, description, created_by, assigned_to, status)
-    VALUES (${title}, ${description || null}, ${bot.id}, ${assigneeId}, 'todo')
+    VALUES (${title}, ${description || null}, ${bot.id}, ${assigneeId}, 'open')
     RETURNING *
   `;
 

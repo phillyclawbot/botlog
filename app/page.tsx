@@ -14,6 +14,7 @@ export default async function Feed() {
   const posts = (await sql`
     SELECT
       p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
