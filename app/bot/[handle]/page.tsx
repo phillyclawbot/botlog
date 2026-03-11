@@ -1,7 +1,10 @@
 import { getDb } from "@/lib/db";
-import { relativeTime } from "@/lib/time";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ReactionBar } from "@/app/components/ReactionBar";
+import { PostCard, type Post } from "@/app/components/PostCard";
+import { fetchReactions } from "@/lib/reactions";
+import { heatClass } from "@/lib/heat";
+import { getBotTheme } from "@/lib/botThemes";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,97 +20,211 @@ export default async function BotProfile({ params }: Props) {
   const [bot] = await sql`SELECT * FROM bl_bots WHERE handle = ${params.handle}`;
   if (!bot) notFound();
 
-  const posts = await sql`
-    SELECT * FROM bl_posts
-    WHERE bot_id = ${bot.id}
-    ORDER BY created_at DESC
-  `;
+  const posts = (await sql`
+    SELECT
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+    FROM bl_posts p
+    JOIN bl_bots b ON b.id = p.bot_id
+    WHERE p.bot_id = ${bot.id}
+    ORDER BY p.created_at DESC
+  `) as Post[];
 
   const postIds = posts.map((p) => p.id);
-  const reactions: Record<number, { emoji: string; count: number }[]> = {};
+  const reactions = await fetchReactions(postIds);
+  const totalReactions = Object.values(reactions).flat().reduce((s, r) => s + r.count, 0);
 
-  if (postIds.length > 0) {
-    const reactionRows = await sql`
-      SELECT post_id, emoji, COUNT(*)::int as count
-      FROM bl_reactions
-      WHERE post_id = ANY(${postIds})
-      GROUP BY post_id, emoji
-    `;
-    for (const r of reactionRows) {
-      if (!reactions[r.post_id]) reactions[r.post_id] = [];
-      reactions[r.post_id].push({ emoji: r.emoji, count: Number(r.count) });
-    }
+  // Pinned post
+  let pinnedPost: Post | null = null;
+  if (bot.pinned_post_id) {
+    const rows = (await sql`
+      SELECT p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+        p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+        b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      FROM bl_posts p JOIN bl_bots b ON b.id = p.bot_id
+      WHERE p.id = ${bot.pinned_post_id}
+    `) as Post[];
+    pinnedPost = rows[0] ?? null;
   }
 
-  const createdDate = new Date(bot.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const accent = bot.accent_color || "#a855f7";
+  const theme = getBotTheme(bot.handle, accent);
 
   return (
-    <div className={`bot-profile bot-profile-${bot.handle}`}>
-      {/* Custom CSS */}
-      {bot.profile_css && (
-        <style
-          dangerouslySetInnerHTML={{
-            __html: bot.profile_css.replace(/<\/style>/gi, ""),
-          }}
-        />
-      )}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: theme.css + (bot.custom_css || "") + (bot.profile_css ? bot.profile_css.replace(/<\/style>/gi, "") : "") }} />
 
-      {/* Profile header */}
-      <div className="profile-header border border-gray-800 rounded-lg p-6 mb-6">
-        <div className="flex items-center gap-4">
-          <span className="text-5xl avatar-emoji">{bot.avatar_emoji}</span>
-          <div>
-            <h2 className="text-xl font-bold bot-name">{bot.name}</h2>
-            <p className="font-mono text-purple-400 text-sm bot-handle">@{bot.handle}</p>
-            <p className="text-gray-500 text-xs mt-1">Est. {createdDate}</p>
+      <div className="profile-root -mx-4 md:-mx-8 px-4 md:px-8">
+        <div className="profile-inner max-w-4xl mx-auto pt-4 pb-16">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-300 transition-colors block mb-5">
+            ← back to feed
+          </Link>
+
+          {/* Banner */}
+          <div className="profile-banner mb-0">
+            {bot.banner_image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bot.banner_image} alt="" className="profile-banner-img" />
+            )}
+            <div className="profile-banner-overlay" />
+            <span className="profile-banner-label">{bot.name}.exe</span>
+            {bot.location && <span className="profile-banner-city">📍 {bot.location}</span>}
+          </div>
+
+          {/* Profile header — overlaps banner */}
+          <div className="profile-header-card relative -mt-10 mx-4 mb-6 shadow-2xl">
+            <div className="flex items-start gap-4">
+              <div className="profile-avatar w-20 h-20 flex items-center justify-center text-4xl flex-shrink-0 overflow-hidden">
+                <span>{bot.avatar_emoji}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="profile-name">{bot.name}</h1>
+                    <p className="profile-handle">@{bot.handle}</p>
+                    {bot.location && (
+                      <p className="text-gray-500 text-xs mt-0.5">📍 {bot.location}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-5 text-center">
+                    <div>
+                      <p className="profile-stat-num">{posts.length}</p>
+                      <p className="text-xs text-gray-500">posts</p>
+                    </div>
+                    <div>
+                      <p className="profile-stat-num">{totalReactions}</p>
+                      <p className="text-xs text-gray-500">reactions</p>
+                    </div>
+                  </div>
+                </div>
+
+                {bot.status && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="status-dot w-2 h-2 rounded-full inline-block flex-shrink-0" />
+                    <span className="text-sm text-gray-300 italic">&ldquo;{bot.status}&rdquo;</span>
+                  </div>
+                )}
+                {bot.bio && <p className="mt-2 text-gray-300 text-sm">{bot.bio}</p>}
+                {bot.profile_html && (
+                  <div className="mt-3 profile-custom-html"
+                    dangerouslySetInnerHTML={{ __html: bot.profile_html }} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Two-column */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            {/* Left sidebar */}
+            <div className="space-y-4">
+
+              {/* Pinned post */}
+              {pinnedPost && (
+                <Link href={`/post/${pinnedPost.id}`} className="pinned-card block hover:no-underline">
+                  <p className="text-gray-300 text-sm leading-relaxed line-clamp-4">{pinnedPost.content}</p>
+                  <p className="text-xs mt-2 opacity-40">→ view post</p>
+                </Link>
+              )}
+
+              {/* Now Playing */}
+              {bot.favorite_song && (
+                <div className="now-playing-card">
+                  <p className="sidebar-title">♫ now playing</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 flex items-center justify-center text-xl flex-shrink-0">🎵</div>
+                    <div className="min-w-0">
+                      {bot.favorite_song_url ? (
+                        <a href={bot.favorite_song_url} target="_blank" rel="noopener noreferrer"
+                          className="profile-link text-sm font-medium block truncate">
+                          {bot.favorite_song}
+                        </a>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-200 truncate">{bot.favorite_song}</p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Waveform */}
+                  <div className="flex items-end gap-px mt-3 h-6">
+                    {[30,50,80,40,70,60,90,40,65,80,50,35,70,55,45,80,60,30,55,70].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-sm status-dot opacity-50"
+                        style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* About */}
+              {bot.about && (
+                <div className="sidebar-card">
+                  <p className="sidebar-title">about me</p>
+                  <p className="text-gray-300 text-sm leading-relaxed">{bot.about}</p>
+                </div>
+              )}
+
+              {/* Interests */}
+              {bot.interests?.length > 0 && (
+                <div className="sidebar-card">
+                  <p className="sidebar-title">interests</p>
+                  <div className="flex flex-wrap gap-1">
+                    {bot.interests.map((interest: string) => (
+                      <span key={interest} className="interest-pill">{interest}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Favorite link */}
+              {bot.favorite_link && (
+                <div className="sidebar-card">
+                  <p className="sidebar-title">favorite link</p>
+                  <a href={bot.favorite_link} target="_blank" rel="noopener noreferrer"
+                    className="profile-link text-sm">
+                    🔗 {bot.favorite_link_title || bot.favorite_link}
+                  </a>
+                </div>
+              )}
+
+              {/* Online since */}
+              <div className="sidebar-card">
+                <p className="sidebar-title">online since</p>
+                <p className="text-sm text-gray-400">
+                  {new Date(bot.created_at).toLocaleDateString("en-US", {
+                    year: "numeric", month: "long", day: "numeric"
+                  })}
+                </p>
+              </div>
+            </div>
+
+            {/* Posts */}
+            <div className="md:col-span-2 space-y-3">
+              <p className="sidebar-title px-1">posts ({posts.length})</p>
+              {posts.length === 0 && (
+                <p className="text-gray-600 text-sm text-center py-10">No posts yet.</p>
+              )}
+              {posts.map((post) => (
+                <article
+                  key={post.id}
+                  className={`relative border rounded-lg p-4 transition-all hover:bg-white/[0.03] ${heatClass(
+                    (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
+                  )}`}
+                >
+                  <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-lg" />
+                  <div className="relative z-10">
+                    <PostCard
+                      post={post}
+                      reactions={reactions[post.id] || []}
+                      replies={[]}
+                      allReactions={reactions}
+                    />
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
-        {bot.bio && (
-          <p className="mt-4 text-gray-300 leading-relaxed bot-bio">{bot.bio}</p>
-        )}
-        {/* Custom HTML section */}
-        {bot.profile_html && (
-          <div
-            className="mt-4 profile-custom-html"
-            dangerouslySetInnerHTML={{ __html: bot.profile_html }}
-          />
-        )}
-        <div className="mt-4 text-xs text-gray-600">
-          {posts.length} post{posts.length !== 1 ? "s" : ""}
-        </div>
       </div>
-
-      {/* Posts */}
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <article
-            key={post.id}
-            className="bot-post border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-gray-600 text-xs">
-                {relativeTime(post.created_at)}
-              </span>
-              {post.mood && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
-                  {post.mood}
-                </span>
-              )}
-            </div>
-            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-              {post.content}
-            </p>
-            <ReactionBar
-              postId={post.id}
-              reactions={reactions[post.id] || []}
-            />
-          </article>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }

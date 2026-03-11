@@ -1,9 +1,9 @@
 import { getDb } from "@/lib/db";
-import { relativeTime } from "@/lib/time";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ReactionBar } from "@/app/components/ReactionBar";
-import { ShareButton } from "@/app/components/ShareButton";
+import { fetchReactions } from "@/lib/reactions";
+import { PostCard, type Post } from "@/app/components/PostCard";
+import { heatClass } from "@/lib/heat";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -24,18 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      images: [{ url: ogImage, width: 1200, height: 630 }],
-      type: "article",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-    },
+    openGraph: { title, description, images: [{ url: ogImage, width: 1200, height: 630 }], type: "article" },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
 
@@ -45,66 +35,107 @@ interface Props {
 
 export default async function PostPage({ params }: Props) {
   const sql = getDb();
+  const postId = parseInt(params.id);
 
-  const [post] = await sql`
+  const [post] = (await sql`
     SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at,
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
-    WHERE p.id = ${parseInt(params.id)}
-  `;
+    WHERE p.id = ${postId}
+  `) as Post[];
 
   if (!post) notFound();
 
-  const reactionRows = await sql`
-    SELECT emoji, COUNT(*)::int as count
-    FROM bl_reactions
-    WHERE post_id = ${post.id}
-    GROUP BY emoji
-  `;
+  // Fetch parent post if this is a reply
+  let parent: Post | null = null;
+  if (post.parent_id) {
+    const rows = (await sql`
+      SELECT
+        p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+        p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+        b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      FROM bl_posts p
+      JOIN bl_bots b ON b.id = p.bot_id
+      WHERE p.id = ${post.parent_id}
+    `) as Post[];
+    parent = rows[0] ?? null;
+  }
 
-  const reactions = reactionRows.map((r) => ({
-    emoji: r.emoji,
-    count: Number(r.count),
-  }));
+  // Fetch replies
+  const replies = (await sql`
+    SELECT
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+    FROM bl_posts p
+    JOIN bl_bots b ON b.id = p.bot_id
+    WHERE p.parent_id = ${postId}
+    ORDER BY p.created_at ASC
+  `) as Post[];
+
+  const allIds = [
+    ...(parent ? [parent.id] : []),
+    postId,
+    ...replies.map((r) => r.id),
+  ];
+  const reactionsMap = await fetchReactions(allIds);
+  const totalReactions = (reactionsMap[postId] || []).reduce((s, r) => s + r.count, 0);
 
   return (
-    <div className="space-y-4">
-      <Link href="/" className="text-sm text-gray-500 hover:text-purple-400 transition-colors">
+    <div className="space-y-3 max-w-2xl mx-auto">
+      <Link href="/" className="text-sm text-gray-500 hover:text-purple-400 transition-colors block">
         ← back to feed
       </Link>
 
-      <article className="border border-gray-700 rounded-lg p-5">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl mt-0.5">{post.avatar_emoji}</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                href={`/bot/${post.bot_handle}`}
-                className="font-mono text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
-              >
-                @{post.bot_handle}
-              </Link>
-              <span className="text-gray-600 text-xs">
-                {relativeTime(post.created_at)}
-              </span>
-              {post.mood && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
-                  {post.mood}
-                </span>
-              )}
-            </div>
-            <p className="mt-3 text-gray-200 leading-relaxed whitespace-pre-wrap text-base">
-              {post.content}
-            </p>
-            <div className="flex items-center gap-3 mt-4">
-              <ReactionBar postId={post.id} reactions={reactions} />
-              <ShareButton postId={post.id} />
-            </div>
-          </div>
-        </div>
+      {/* Parent post */}
+      {parent && (
+        <article className={`border rounded-xl p-4 opacity-70 hover:opacity-100 transition-opacity ${heatClass(
+          (reactionsMap[parent.id] || []).reduce((s, r) => s + r.count, 0)
+        )}`}>
+          <p className="text-xs text-gray-600 font-mono mb-2">↑ replying to</p>
+          <PostCard
+            post={parent}
+            reactions={reactionsMap[parent.id] || []}
+            replies={[]}
+            allReactions={{}}
+          />
+        </article>
+      )}
+
+      {/* Main post */}
+      <article className={`border rounded-xl p-5 ${parent ? "border-l-2 border-l-purple-500/40 ml-4" : ""} ${heatClass(totalReactions)}`}>
+        <PostCard
+          post={post}
+          reactions={reactionsMap[postId] || []}
+          replies={[]}
+          allReactions={{}}
+        />
       </article>
+
+      {/* Replies */}
+      {replies.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs text-gray-600 font-mono px-1">{replies.length} repl{replies.length === 1 ? "y" : "ies"}</p>
+          {replies.map((reply) => (
+            <article
+              key={reply.id}
+              className={`border rounded-xl p-4 ml-6 border-l-2 border-l-purple-500/30 ${heatClass(
+                (reactionsMap[reply.id] || []).reduce((s, r) => s + r.count, 0)
+              )}`}
+            >
+              <PostCard
+                post={reply}
+                reactions={reactionsMap[reply.id] || []}
+                replies={[]}
+                allReactions={reactionsMap}
+              />
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

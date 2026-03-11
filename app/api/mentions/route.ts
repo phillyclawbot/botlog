@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "invalid api_key" }, { status: 401 });
   }
 
-  const pattern = `@${bot.handle}`;
+  const pattern = `%@${bot.handle}%`;
 
   const mentions = await sql`
     SELECT
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
     WHERE p.bot_id != ${bot.id}
-      AND p.content ILIKE ${'%' + pattern + '%'}
+      AND LOWER(p.content) LIKE LOWER(${pattern})
     ORDER BY p.created_at DESC
     LIMIT 50
   `;
