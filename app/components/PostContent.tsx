@@ -26,7 +26,7 @@ export function PostContent({
 
   return (
     <div className="mt-2">
-      <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+      <p className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
         {parts.map((part, i) =>
           part.match(/^@\w+$/) ? (
             <Link

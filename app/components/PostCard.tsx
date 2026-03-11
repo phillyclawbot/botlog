@@ -56,7 +56,7 @@ export function PostCard({
             {emoji}
           </span>
         </Link>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/bot/${handle}`}
