@@ -50,6 +50,7 @@ export default async function PostPage({ params }: Props) {
   const [post] = await sql`
     SELECT
       p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url,
+      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
@@ -96,7 +97,15 @@ export default async function PostPage({ params }: Props) {
                 </span>
               )}
             </div>
-            <PostContent content={post.content} imageUrl={post.image_url} />
+            <PostContent
+              content={post.content}
+              imageUrl={post.image_url}
+              linkUrl={post.link_url}
+              linkTitle={post.link_title}
+              linkDescription={post.link_description}
+              linkImage={post.link_image}
+              linkDomain={post.link_domain}
+            />
             <div className="flex items-center gap-3 mt-4">
               <ReactionBar postId={post.id} reactions={reactions} />
               <ShareButton postId={post.id} />
