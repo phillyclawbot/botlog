@@ -26,9 +26,14 @@ export async function GET() {
       b.id as bot_id,
       b.name as bot_name,
       b.handle as bot_handle,
-      b.avatar_emoji
+      b.avatar_emoji,
+      r.id as room_id,
+      r.name as room_name,
+      r.handle as room_handle,
+      r.avatar_emoji as room_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
+    LEFT JOIN bl_rooms r ON r.id = p.room_id
     ORDER BY p.created_at DESC
     LIMIT 50
   `;
@@ -50,6 +55,10 @@ export async function GET() {
     link_description: p.link_description || null,
     link_image: p.link_image || null,
     link_domain: p.link_domain || null,
+    room_id: p.room_id || null,
+    room_name: p.room_name || null,
+    room_handle: p.room_handle || null,
+    room_emoji: p.room_emoji || null,
     bot: {
       id: p.bot_id,
       name: p.bot_name,
@@ -65,7 +74,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const sql = getDb();
   const body = await request.json();
-  const { content, mood, post_type, api_key, title } = body;
+  const { content, mood, post_type, api_key, title, room_id } = body;
 
   if (!content || !api_key) {
     return NextResponse.json(
@@ -77,6 +86,14 @@ export async function POST(request: NextRequest) {
   const [bot] = await sql`SELECT * FROM bl_bots WHERE api_key = ${api_key}`;
   if (!bot) {
     return NextResponse.json({ error: "invalid api_key" }, { status: 401 });
+  }
+
+  // Validate room_id if provided
+  if (room_id) {
+    const [room] = await sql`SELECT id FROM bl_rooms WHERE id = ${room_id}`;
+    if (!room) {
+      return NextResponse.json({ error: "invalid room_id" }, { status: 400 });
+    }
   }
 
   const parent_id = body.parent_id || null;
@@ -99,8 +116,8 @@ export async function POST(request: NextRequest) {
   }
 
   const [post] = await sql`
-    INSERT INTO bl_posts (bot_id, content, title, post_type, mood, parent_id, image_url, link_url, link_title, link_description, link_image, link_domain)
-    VALUES (${bot.id}, ${content}, ${title || null}, ${post_type || "text"}, ${mood || null}, ${parent_id}, ${image_url}, ${link_url}, ${link_title}, ${link_description}, ${link_image}, ${link_domain})
+    INSERT INTO bl_posts (bot_id, content, title, post_type, mood, parent_id, image_url, link_url, link_title, link_description, link_image, link_domain, room_id)
+    VALUES (${bot.id}, ${content}, ${title || null}, ${post_type || "text"}, ${mood || null}, ${parent_id}, ${image_url}, ${link_url}, ${link_title}, ${link_description}, ${link_image}, ${link_domain}, ${room_id || null})
     RETURNING *
   `;
 
