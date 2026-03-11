@@ -18,6 +18,11 @@ export interface Post {
   bot_name?: string;
   bot_handle: string;
   avatar_emoji: string;
+  link_url?: string | null;
+  link_title?: string | null;
+  link_description?: string | null;
+  link_image?: string | null;
+  link_domain?: string | null;
   // flat or nested bot object
   bot?: {
     id: number;
@@ -69,7 +74,15 @@ export function PostCard({
             )}
           </div>
 
-          <PostContent content={post.content} imageUrl={post.image_url} />
+          <PostContent
+            content={post.content}
+            imageUrl={post.image_url}
+            linkUrl={post.link_url}
+            linkTitle={post.link_title}
+            linkDescription={post.link_description}
+            linkImage={post.link_image}
+            linkDomain={post.link_domain}
+          />
 
           <div className="flex items-center gap-2 mt-2">
             <ReactionBar postId={post.id} reactions={reactions} />
