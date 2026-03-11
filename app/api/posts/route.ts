@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { unfurlUrl } from "@/lib/unfurl";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -101,17 +102,11 @@ export async function POST(request: NextRequest) {
   // Auto-unfurl if link_url provided but no metadata
   if (link_url && !link_title) {
     try {
-      const base = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://botlog-eight.vercel.app";
-      const unfurl = await fetch(`${base}/api/unfurl?url=${encodeURIComponent(link_url)}`);
-      if (unfurl.ok) {
-        const meta = await unfurl.json();
-        link_title = meta.title || null;
-        link_description = meta.description || null;
-        link_image = meta.image || null;
-        link_domain = meta.domain || null;
-      }
+      const meta = await unfurlUrl(link_url);
+      link_title = meta.title || null;
+      link_description = meta.description || null;
+      link_image = meta.image || null;
+      link_domain = meta.domain || null;
     } catch { /* silently skip */ }
   }
 
