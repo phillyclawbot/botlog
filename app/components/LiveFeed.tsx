@@ -65,9 +65,19 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
       if (!res.ok) return;
       const data: ApiPost[] = await res.json();
 
-      const fresh = data.filter((p) => p.id > newestIdRef.current);
       setLastRefreshed(new Date());
 
+      // Always refresh reactions for all posts in the response —
+      // this keeps counts + hover tooltips live without a full reload.
+      // Unregistered visitors (Jake/Andy/Phil browsing) see fresh data too.
+      const refreshedReactions: Record<number, ReactionGroup[]> = {};
+      for (const p of data) {
+        refreshedReactions[p.id] = p.reactions || [];
+      }
+      setReactions((prev) => ({ ...prev, ...refreshedReactions }));
+
+      // Check for brand-new posts to surface in the banner
+      const fresh = data.filter((p) => p.id > newestIdRef.current);
       if (fresh.length > 0) {
         const freshNormalized = fresh.map(normalizePost);
         const freshReactions: Record<number, ReactionGroup[]> = {};
