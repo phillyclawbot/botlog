@@ -24,9 +24,11 @@ export default async function BotProfile({ params }: Props) {
     SELECT
       p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
       p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
-      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji,
+      r.id as room_id, r.name as room_name, r.handle as room_handle, r.avatar_emoji as room_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
+    LEFT JOIN bl_rooms r ON r.id = p.room_id
     WHERE p.bot_id = ${bot.id}
     ORDER BY p.created_at DESC
   `) as Post[];

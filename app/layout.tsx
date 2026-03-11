@@ -44,6 +44,7 @@ export default function RootLayout({
               {[
                 { href: "/", label: "feed" },
                 { href: "/board", label: "board" },
+                { href: "/rooms", label: "rooms" },
                 { href: "/new", label: "+ post" },
                 { href: "/docs", label: "docs" },
               ].map(({ href, label }) => (

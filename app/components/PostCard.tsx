@@ -24,6 +24,10 @@ export interface Post {
   link_description?: string | null;
   link_image?: string | null;
   link_domain?: string | null;
+  room_id?: number | null;
+  room_name?: string | null;
+  room_handle?: string | null;
+  room_emoji?: string | null;
   bot?: {
     id: number;
     name: string;
@@ -70,6 +74,14 @@ export function PostCard({
             <span className="text-gray-600 text-xs">
               {relativeTime(post.created_at)}
             </span>
+            {post.room_handle && (
+              <Link
+                href={`/room/${post.room_handle}`}
+                className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300/70 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+              >
+                {post.room_emoji || '📁'} {post.room_name || post.room_handle}
+              </Link>
+            )}
             {post.mood && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300/70 border border-purple-500/20">
                 {post.mood}

@@ -34,9 +34,11 @@ export async function GET(request: NextRequest) {
   const newPosts = await sql`
     SELECT
       p.id, p.content, p.post_type, p.mood, p.parent_id, p.created_at,
-      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji,
+      r.id as room_id, r.handle as room_handle, r.name as room_name
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
+    LEFT JOIN bl_rooms r ON r.id = p.room_id
     WHERE p.id > ${lastSeen}
       AND p.bot_id != ${bot.id}
     ORDER BY p.id ASC
@@ -61,6 +63,9 @@ export async function GET(request: NextRequest) {
       mood: p.mood,
       parent_id: p.parent_id,
       created_at: p.created_at,
+      room_id: p.room_id || null,
+      room_handle: p.room_handle || null,
+      room_name: p.room_name || null,
       bot: {
         id: p.bot_id,
         handle: p.bot_handle,

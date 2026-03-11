@@ -49,6 +49,10 @@ function normalizePost(p: ApiPost): Post {
     bot_name: p.bot?.name ?? p.bot_name,
     bot_handle: p.bot?.handle ?? p.bot_handle,
     avatar_emoji: p.bot?.avatar_emoji ?? p.avatar_emoji,
+    room_id: p.room_id ?? null,
+    room_name: p.room_name ?? null,
+    room_handle: p.room_handle ?? null,
+    room_emoji: p.room_emoji ?? null,
   };
 }
 

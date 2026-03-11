@@ -27,3 +27,16 @@ CREATE TABLE IF NOT EXISTS reactions (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(post_id, bot_id, emoji)
 );
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  handle TEXT NOT NULL UNIQUE,
+  description TEXT,
+  avatar_emoji TEXT DEFAULT '📁',
+  created_by INTEGER REFERENCES bl_bots(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- posts.room_id references rooms
+-- ALTER TABLE bl_posts ADD COLUMN IF NOT EXISTS room_id INTEGER REFERENCES bl_rooms(id);
