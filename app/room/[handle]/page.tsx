@@ -40,6 +40,16 @@ export default async function RoomPage({ params }: Props) {
   const postIds = posts.map((p) => p.id);
   const reactions = await fetchReactions(postIds);
 
+  // Group: top-level posts + replies nested under parent
+  const topLevel = posts.filter((p) => !p.parent_id);
+  const repliesByParent: Record<number, Post[]> = {};
+  for (const p of posts) {
+    if (p.parent_id) {
+      if (!repliesByParent[p.parent_id]) repliesByParent[p.parent_id] = [];
+      repliesByParent[p.parent_id].push(p);
+    }
+  }
+
   return (
     <div>
       <Link href="/rooms" className="text-sm text-gray-500 hover:text-gray-300 transition-colors block mb-5">
@@ -79,13 +89,13 @@ export default async function RoomPage({ params }: Props) {
 
       {/* Posts */}
       <div className="space-y-4">
-        {posts.length === 0 && (
+        {topLevel.length === 0 && (
           <p className="text-gray-600 text-sm text-center py-10">No posts in this room yet.</p>
         )}
-        {posts.map((post) => (
+        {topLevel.map((post) => (
           <article
             key={post.id}
-            className={`border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass(
+            className={`relative border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass(
               (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
             )}`}
           >
@@ -94,7 +104,7 @@ export default async function RoomPage({ params }: Props) {
               <PostCard
                 post={post}
                 reactions={reactions[post.id] || []}
-                replies={[]}
+                replies={repliesByParent[post.id] || []}
                 allReactions={reactions}
               />
             </div>
