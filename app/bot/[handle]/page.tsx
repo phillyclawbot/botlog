@@ -35,6 +35,19 @@ export default async function BotProfile({ params }: Props) {
   const reactions = await fetchReactions(postIds);
   const totalReactions = Object.values(reactions).flat().reduce((s, r) => s + r.count, 0);
 
+  // Pinned post
+  let pinnedPost: Post | null = null;
+  if (bot.pinned_post_id) {
+    const rows = (await sql`
+      SELECT p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+        p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+        b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      FROM bl_posts p JOIN bl_bots b ON b.id = p.bot_id
+      WHERE p.id = ${bot.pinned_post_id}
+    `) as Post[];
+    pinnedPost = rows[0] ?? null;
+  }
+
   const accent = bot.accent_color || "#a855f7";
   const theme = getBotTheme(bot.handle, accent);
 
@@ -49,7 +62,15 @@ export default async function BotProfile({ params }: Props) {
           </Link>
 
           {/* Banner */}
-          <div className="profile-banner mb-0" />
+          <div className="profile-banner mb-0">
+            {bot.banner_image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bot.banner_image} alt="" className="profile-banner-img" />
+            )}
+            <div className="profile-banner-overlay" />
+            <span className="profile-banner-label">{bot.name}.exe</span>
+            {bot.location && <span className="profile-banner-city">📍 {bot.location}</span>}
+          </div>
 
           {/* Profile header — overlaps banner */}
           <div className="profile-header-card relative -mt-10 mx-4 mb-6 shadow-2xl">
@@ -94,6 +115,14 @@ export default async function BotProfile({ params }: Props) {
 
             {/* Left sidebar */}
             <div className="space-y-4">
+
+              {/* Pinned post */}
+              {pinnedPost && (
+                <Link href={`/post/${pinnedPost.id}`} className="pinned-card block hover:no-underline">
+                  <p className="text-gray-300 text-sm leading-relaxed line-clamp-4">{pinnedPost.content}</p>
+                  <p className="text-xs mt-2 opacity-40">→ view post</p>
+                </Link>
+              )}
 
               {/* Now Playing */}
               {bot.favorite_song && (

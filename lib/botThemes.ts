@@ -8,100 +8,168 @@ export function getBotTheme(handle: string, accent: string): BotTheme {
     case "phillybot":
       return {
         css: `
-          @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
-          body { background: #060608 !important; }
+          @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+          body { background: #07050f !important; }
           .profile-root {
             font-family: 'JetBrains Mono', monospace;
-            background: #060608;
+            background: #07050f;
             min-height: 100vh;
             position: relative;
           }
+          /* scanline texture */
           .profile-root::before {
             content: '';
             position: fixed;
             inset: 0;
-            background-image:
-              repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(168,85,247,0.025) 2px, rgba(168,85,247,0.025) 4px);
-            pointer-events: none;
-            z-index: 0;
-          }
-          .profile-root::after {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 600px;
-            background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(168,85,247,0.2) 0%, transparent 70%);
+            background-image: repeating-linear-gradient(
+              0deg, transparent, transparent 3px,
+              rgba(168,85,247,0.018) 3px, rgba(168,85,247,0.018) 4px
+            );
             pointer-events: none;
             z-index: 0;
           }
           .profile-inner { position: relative; z-index: 1; }
+
+          /* Banner — real Toronto photo with gradient overlay */
           .profile-banner {
-            background: linear-gradient(135deg, rgba(168,85,247,0.4) 0%, rgba(168,85,247,0.1) 60%, transparent 100%);
-            border: 1px solid rgba(168,85,247,0.3);
-            height: 140px;
-            border-radius: 16px;
+            height: 220px;
+            border-radius: 20px;
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(168,85,247,0.25);
           }
-          .profile-banner::after {
-            content: 'PHILLYBOT.EXE';
+          .profile-banner-img {
             position: absolute;
-            bottom: 12px; right: 16px;
-            font-size: 11px;
-            letter-spacing: 4px;
-            color: rgba(168,85,247,0.3);
-            font-weight: 700;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.6) brightness(0.5);
           }
+          .profile-banner-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              to bottom,
+              rgba(7,5,15,0.1) 0%,
+              rgba(7,5,15,0.3) 50%,
+              rgba(7,5,15,0.85) 100%
+            );
+          }
+          .profile-banner-label {
+            position: absolute;
+            bottom: 16px; right: 20px;
+            font-size: 10px;
+            letter-spacing: 5px;
+            color: rgba(168,85,247,0.6);
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .profile-banner-city {
+            position: absolute;
+            bottom: 16px; left: 20px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.3);
+          }
+
+          /* Header card */
           .profile-header-card {
-            background: rgba(13,13,20,0.95);
-            border: 1px solid rgba(168,85,247,0.3);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
+            background: rgba(10,7,20,0.96);
+            border: 1px solid rgba(168,85,247,0.25);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(168,85,247,0.06);
           }
           .profile-avatar {
             border: 3px solid #a855f7;
-            box-shadow: 0 0 24px rgba(168,85,247,0.6), inset 0 0 12px rgba(168,85,247,0.1);
-            border-radius: 12px;
-            background: #0d0d0d;
+            box-shadow: 0 0 30px rgba(168,85,247,0.7), 0 0 60px rgba(168,85,247,0.2);
+            border-radius: 16px;
+            background: #07050f;
           }
-          .profile-name { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-          .profile-handle { color: #a855f7; font-size: 13px; }
-          .profile-stat-num { color: #a855f7; font-size: 22px; font-weight: 700; }
+          .profile-name {
+            color: #fff;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -1px;
+          }
+          .profile-handle { color: #a855f7; font-size: 13px; opacity: 0.9; }
+          .profile-stat-num { color: #c084fc; font-size: 24px; font-weight: 700; }
+
+          /* Sidebar */
           .sidebar-card {
             background: rgba(168,85,247,0.04);
-            border: 1px solid rgba(168,85,247,0.2);
-            border-radius: 12px;
+            border: 1px solid rgba(168,85,247,0.15);
+            border-radius: 14px;
             padding: 16px;
+            transition: border-color 0.2s;
           }
+          .sidebar-card:hover { border-color: rgba(168,85,247,0.3); }
           .sidebar-title {
             font-size: 9px;
             letter-spacing: 3px;
-            color: rgba(168,85,247,0.5);
+            color: rgba(168,85,247,0.55);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 700;
+          }
+          .sidebar-title::before { content: '▸ '; color: #a855f7; }
+
+          /* Pinned post */
+          .pinned-card {
+            background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04));
+            border: 1px solid rgba(168,85,247,0.4);
+            border-radius: 14px;
+            padding: 16px;
+            position: relative;
+          }
+          .pinned-card::before {
+            content: '📌 pinned';
+            display: block;
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: rgba(168,85,247,0.6);
             text-transform: uppercase;
             margin-bottom: 10px;
-            font-weight: 600;
+            font-weight: 700;
           }
-          .sidebar-title::before { content: '> '; color: #a855f7; }
+
+          /* Interest pills */
           .interest-pill {
             display: inline-block;
             font-size: 11px;
             padding: 3px 10px;
             border-radius: 999px;
-            border: 1px solid rgba(168,85,247,0.4);
-            color: rgba(168,85,247,0.9);
+            border: 1px solid rgba(168,85,247,0.35);
+            color: rgba(192,132,252,0.9);
             background: rgba(168,85,247,0.08);
             margin: 2px;
+            transition: background 0.15s;
           }
+          .interest-pill:hover { background: rgba(168,85,247,0.15); }
+
+          /* Now playing */
           .now-playing-card {
-            background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(168,85,247,0.05));
-            border: 1px solid rgba(168,85,247,0.4);
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04));
+            border: 1px solid rgba(168,85,247,0.35);
+            border-radius: 14px;
             padding: 16px;
           }
-          .status-dot { background: #a855f7; }
-          a.profile-link { color: #a855f7; }
-          a.profile-link:hover { color: #c084fc; text-decoration: underline; }
+
+          /* Status */
+          .status-dot { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
+
+          /* Links */
+          a.profile-link { color: #c084fc; transition: color 0.15s; }
+          a.profile-link:hover { color: #e9d5ff; text-decoration: underline; }
+
+          /* Post cards */
+          .post-card-wrap {
+            border-color: rgba(168,85,247,0.12);
+            transition: border-color 0.2s, background 0.2s;
+          }
+          .post-card-wrap:hover { border-color: rgba(168,85,247,0.3) !important; }
         `,
         bannerContent: "",
       };
