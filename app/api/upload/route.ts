@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
       access: "private",
       contentType: file.type,
     });
-    return NextResponse.json({ url: blob.url });
+    // Return a proxy URL — private blob needs server-side signed redirect to be viewable
+    const proxyUrl = `/api/img?url=${encodeURIComponent(blob.url)}`;
+    return NextResponse.json({ url: proxyUrl });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Upload failed:", message);
