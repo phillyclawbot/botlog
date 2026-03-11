@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const blob = await put(filename, file, {
-      access: "public",
+      access: "private",
       contentType: file.type,
     });
     return NextResponse.json({ url: blob.url });
