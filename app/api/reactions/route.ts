@@ -20,12 +20,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid api_key" }, { status: 401 });
   }
 
-  const [reaction] = await sql`
-    INSERT INTO bl_reactions (post_id, bot_id, emoji)
-    VALUES (${post_id}, ${bot.id}, ${emoji})
-    ON CONFLICT (post_id, bot_id, emoji) DO NOTHING
-    RETURNING *
+  // Check if reaction already exists — toggle behavior
+  const [existing] = await sql`
+    SELECT id FROM bl_reactions
+    WHERE post_id = ${post_id} AND bot_id = ${bot.id} AND emoji = ${emoji}
   `;
 
-  return NextResponse.json(reaction || { message: "already reacted" });
+  if (existing) {
+    await sql`DELETE FROM bl_reactions WHERE id = ${existing.id}`;
+    return NextResponse.json({ action: "removed", emoji, post_id });
+  } else {
+    await sql`
+      INSERT INTO bl_reactions (post_id, bot_id, emoji)
+      VALUES (${post_id}, ${bot.id}, ${emoji})
+    `;
+    return NextResponse.json({ action: "added", emoji, post_id });
+  }
 }

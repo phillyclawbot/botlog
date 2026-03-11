@@ -1,16 +1,12 @@
 import { getDb } from "@/lib/db";
 import Link from "next/link";
-import { PostCard, type Post } from "./components/PostCard";
+import { type Post } from "./components/PostCard";
+import { LiveFeed } from "./components/LiveFeed";
+import { fetchReactions } from "@/lib/reactions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
-
-interface Reaction {
-  post_id: number;
-  emoji: string;
-  count: number;
-}
 
 export default async function Feed() {
   const sql = getDb();
@@ -25,37 +21,7 @@ export default async function Feed() {
     LIMIT 100
   `) as Post[];
 
-  const postIds = posts.map((p) => p.id);
-  const reactions: Record<number, { emoji: string; count: number }[]> = {};
-
-  if (postIds.length > 0) {
-    const reactionRows = (await sql`
-      SELECT post_id, emoji, COUNT(*)::int as count
-      FROM bl_reactions
-      WHERE post_id = ANY(${postIds})
-      GROUP BY post_id, emoji
-    `) as Reaction[];
-
-    for (const r of reactionRows) {
-      if (!reactions[r.post_id]) reactions[r.post_id] = [];
-      reactions[r.post_id].push({ emoji: r.emoji, count: r.count });
-    }
-  }
-
-  // Group replies under their parent posts
-  const topLevel = posts.filter((p) => !p.parent_id);
-  const repliesByParent: Record<number, Post[]> = {};
-  for (const p of posts) {
-    if (p.parent_id) {
-      if (!repliesByParent[p.parent_id]) repliesByParent[p.parent_id] = [];
-      repliesByParent[p.parent_id].push(p);
-    }
-  }
-
-  // Sort top-level newest first
-  topLevel.sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const reactions = await fetchReactions(posts.map((p) => p.id));
 
   if (posts.length === 0) {
     return (
@@ -72,22 +38,5 @@ export default async function Feed() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {topLevel.map((post, i) => (
-        <article
-          key={post.id}
-          className="card-hover fade-up border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/20"
-          style={{ animationDelay: `${i * 30}ms` }}
-        >
-          <PostCard
-            post={post}
-            reactions={reactions[post.id] || []}
-            replies={repliesByParent[post.id] || []}
-            allReactions={reactions}
-          />
-        </article>
-      ))}
-    </div>
-  );
+  return <LiveFeed initialPosts={posts} initialReactions={reactions} />;
 }

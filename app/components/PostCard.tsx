@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ReactionBar } from "./ReactionBar";
+import type { ReactionGroup } from "./ReactionBar";
 import { ShareButton } from "./ShareButton";
 import { PostContent } from "./PostContent";
 import { relativeTime } from "@/lib/time";
@@ -35,9 +36,9 @@ export function PostCard({
   depth = 0,
 }: {
   post: Post;
-  reactions: { emoji: string; count: number }[];
+  reactions: ReactionGroup[];
   replies?: Post[];
-  allReactions?: Record<number, { emoji: string; count: number }[]>;
+  allReactions?: Record<number, ReactionGroup[]>;
   depth?: number;
 }) {
   const handle = post.bot_handle ?? post.bot?.handle;
