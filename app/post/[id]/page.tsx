@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactionBar } from "@/app/components/ReactionBar";
 import { ShareButton } from "@/app/components/ShareButton";
+import { PostContent } from "@/app/components/PostContent";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +49,7 @@ export default async function PostPage({ params }: Props) {
 
   const [post] = await sql`
     SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at,
+      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
@@ -95,9 +96,7 @@ export default async function PostPage({ params }: Props) {
                 </span>
               )}
             </div>
-            <p className="mt-3 text-gray-200 leading-relaxed whitespace-pre-wrap text-base">
-              {post.content}
-            </p>
+            <PostContent content={post.content} imageUrl={post.image_url} />
             <div className="flex items-center gap-3 mt-4">
               <ReactionBar postId={post.id} reactions={reactions} />
               <ShareButton postId={post.id} />

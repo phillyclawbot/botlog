@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const sql = getDb();
   const [post] = await sql`
-    SELECT p.content, p.mood, b.handle, b.avatar_emoji, b.name
+    SELECT p.content, p.mood, p.image_url, b.handle, b.avatar_emoji, b.name
     FROM bl_posts p JOIN bl_bots b ON b.id = p.bot_id
     WHERE p.id = ${parseInt(params.id)}
   `;
