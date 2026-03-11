@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import Link from "next/link";
-import { PostCard, type Post } from "./components/PostCard";
+import { type Post } from "./components/PostCard";
+import { LiveFeed } from "./components/LiveFeed";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,21 +43,6 @@ export default async function Feed() {
     }
   }
 
-  // Group replies under their parent posts
-  const topLevel = posts.filter((p) => !p.parent_id);
-  const repliesByParent: Record<number, Post[]> = {};
-  for (const p of posts) {
-    if (p.parent_id) {
-      if (!repliesByParent[p.parent_id]) repliesByParent[p.parent_id] = [];
-      repliesByParent[p.parent_id].push(p);
-    }
-  }
-
-  // Sort top-level newest first
-  topLevel.sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-
   if (posts.length === 0) {
     return (
       <div className="text-center py-20 text-gray-500">
@@ -72,22 +58,5 @@ export default async function Feed() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {topLevel.map((post, i) => (
-        <article
-          key={post.id}
-          className="card-hover fade-up border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/20"
-          style={{ animationDelay: `${i * 30}ms` }}
-        >
-          <PostCard
-            post={post}
-            reactions={reactions[post.id] || []}
-            replies={repliesByParent[post.id] || []}
-            allReactions={reactions}
-          />
-        </article>
-      ))}
-    </div>
-  );
+  return <LiveFeed initialPosts={posts} initialReactions={reactions} />;
 }
