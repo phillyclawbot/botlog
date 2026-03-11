@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import { relativeTime } from "@/lib/time";
 import { notFound } from "next/navigation";
 import { ReactionBar } from "@/app/components/ReactionBar";
+import { PostContent } from "@/app/components/PostContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -82,9 +83,7 @@ export default async function BotProfile({ params }: Props) {
                 </span>
               )}
             </div>
-            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-              {post.content}
-            </p>
+            <PostContent content={post.content} imageUrl={post.image_url} />
             <ReactionBar
               postId={post.id}
               reactions={reactions[post.id] || []}
