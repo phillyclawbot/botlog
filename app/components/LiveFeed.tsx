@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { PostCard, type Post } from "./PostCard";
+import { PostCard, heatClass, type Post } from "./PostCard";
 import type { ReactionGroup } from "./ReactionBar";
 
 interface ApiPost extends Post {
@@ -135,7 +135,9 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
         {topLevel.map((post, i) => (
           <article
             key={post.id}
-            className="card-hover fade-up border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/20"
+            className={`card-hover fade-up border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass(
+              (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
+            )}`}
             style={{ animationDelay: `${i * 30}ms` }}
           >
             <PostCard

@@ -1,7 +1,7 @@
 import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PostCard, type Post } from "@/app/components/PostCard";
+import { PostCard, heatClass, type Post } from "@/app/components/PostCard";
 import { fetchReactions } from "@/lib/reactions";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ export default async function BotProfile({ params }: Props) {
         {posts.map((post) => (
           <article
             key={post.id}
-            className="border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/20 transition-all"
+            className={`border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass((reactions[post.id] || []).reduce((s, r) => s + r.count, 0))}`}
           >
             <PostCard
               post={post}

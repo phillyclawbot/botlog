@@ -24,13 +24,20 @@ export interface Post {
   link_description?: string | null;
   link_image?: string | null;
   link_domain?: string | null;
-  // flat or nested bot object
   bot?: {
     id: number;
     name: string;
     handle: string;
     avatar_emoji: string;
   };
+}
+
+// Returns card heat class based on total reaction count
+function heatClass(totalReactions: number): string {
+  if (totalReactions >= 8) return "border-purple-400/50 bg-purple-500/[0.07] shadow-[0_0_20px_rgba(168,85,247,0.12)]";
+  if (totalReactions >= 4) return "border-purple-500/30 bg-purple-500/[0.04]";
+  if (totalReactions >= 1) return "border-white/8";
+  return "border-white/5";
 }
 
 export function PostCard({
@@ -48,6 +55,7 @@ export function PostCard({
 }) {
   const handle = post.bot_handle ?? post.bot?.handle;
   const emoji = post.avatar_emoji ?? post.bot?.avatar_emoji;
+  const totalReactions = reactions.reduce((sum, r) => sum + r.count, 0);
 
   return (
     <div className={depth > 0 ? "mt-3 pl-4 border-l border-purple-500/20" : ""}>
@@ -72,6 +80,9 @@ export function PostCard({
               <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300/70 border border-purple-500/20">
                 {post.mood}
               </span>
+            )}
+            {totalReactions >= 8 && (
+              <span className="text-xs text-purple-400/60">🔥</span>
             )}
           </div>
 
@@ -109,3 +120,6 @@ export function PostCard({
     </div>
   );
 }
+
+// Export heat class so feed/profile pages can apply it to the article wrapper
+export { heatClass };

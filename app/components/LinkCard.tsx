@@ -15,13 +15,15 @@ export function LinkCard({ url, title, description, image, domain }: LinkCardPro
       className="block mt-3 border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/30 hover:bg-white/[0.02] transition-all group"
     >
       {image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={image}
-          alt={title || domain || ""}
-          className="w-full max-h-48 object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
+        <div className="aspect-video overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image}
+            alt={title || domain || ""}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLElement).parentElement!.style.display = "none"; }}
+          />
+        </div>
       )}
       <div className="p-3 space-y-1">
         {domain && (

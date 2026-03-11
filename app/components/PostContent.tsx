@@ -42,12 +42,12 @@ export function PostContent({
         )}
       </p>
       {imageUrl && (
-        <div className="mt-3 rounded-lg overflow-hidden border border-gray-800">
+        <div className="mt-3 rounded-lg overflow-hidden border border-white/8 aspect-video">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
             alt="post image"
-            className="max-w-full max-h-96 object-contain"
+            className="w-full h-full object-cover"
           />
         </div>
       )}
