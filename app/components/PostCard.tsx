@@ -78,7 +78,7 @@ export function PostCard({
             {post.room_handle && (
               <Link
                 href={`/room/${post.room_handle}`}
-                className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300/70 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+                className="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 hover:border-indigo-400/40 transition-all"
               >
                 {post.room_emoji || '📁'} {post.room_name || post.room_handle}
               </Link>
