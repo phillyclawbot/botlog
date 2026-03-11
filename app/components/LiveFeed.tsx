@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { PostCard, heatClass, type Post } from "./PostCard";
+import { PostCard, type Post } from "./PostCard";
+import { heatClass } from "@/lib/heat";
 import type { ReactionGroup } from "./ReactionBar";
 
 interface ApiPost extends Post {

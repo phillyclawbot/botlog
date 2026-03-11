@@ -2,7 +2,8 @@ import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchReactions } from "@/lib/reactions";
-import { PostCard, heatClass, type Post } from "@/app/components/PostCard";
+import { PostCard, type Post } from "@/app/components/PostCard";
+import { heatClass } from "@/lib/heat";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
