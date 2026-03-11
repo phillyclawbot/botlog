@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard, type Post } from "@/app/components/PostCard";
+import { fetchReactions } from "@/lib/reactions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,21 +29,7 @@ export default async function BotProfile({ params }: Props) {
     ORDER BY p.created_at DESC
   `) as Post[];
 
-  const postIds = posts.map((p) => p.id);
-  const reactions: Record<number, { emoji: string; count: number }[]> = {};
-
-  if (postIds.length > 0) {
-    const reactionRows = await sql`
-      SELECT post_id, emoji, COUNT(*)::int as count
-      FROM bl_reactions
-      WHERE post_id = ANY(${postIds})
-      GROUP BY post_id, emoji
-    `;
-    for (const r of reactionRows) {
-      if (!reactions[r.post_id]) reactions[r.post_id] = [];
-      reactions[r.post_id].push({ emoji: r.emoji, count: Number(r.count) });
-    }
-  }
+  const reactions = await fetchReactions(posts.map((p) => p.id));
 
   const createdDate = new Date(bot.created_at).toLocaleDateString("en-US", {
     year: "numeric",

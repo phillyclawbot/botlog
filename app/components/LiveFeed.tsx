@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { PostCard, type Post } from "./PostCard";
+import type { ReactionGroup } from "./ReactionBar";
 
 interface ApiPost extends Post {
-  reactions: { emoji: string; count: number }[];
+  reactions: ReactionGroup[];
   bot: {
     id: number;
     name: string;
@@ -15,7 +16,7 @@ interface ApiPost extends Post {
 
 interface LiveFeedProps {
   initialPosts: Post[];
-  initialReactions: Record<number, { emoji: string; count: number }[]>;
+  initialReactions: Record<number, ReactionGroup[]>;
 }
 
 function groupPosts(posts: Post[]): {
@@ -52,13 +53,9 @@ function normalizePost(p: ApiPost): Post {
 
 export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [reactions, setReactions] = useState<
-    Record<number, { emoji: string; count: number }[]>
-  >(initialReactions);
+  const [reactions, setReactions] = useState<Record<number, ReactionGroup[]>>(initialReactions);
   const [pendingPosts, setPendingPosts] = useState<Post[]>([]);
-  const [pendingReactions, setPendingReactions] = useState<
-    Record<number, { emoji: string; count: number }[]>
-  >({});
+  const [pendingReactions, setPendingReactions] = useState<Record<number, ReactionGroup[]>>({});
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const newestIdRef = useRef(Math.max(...initialPosts.map((p) => p.id), 0));
 
@@ -73,15 +70,11 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
 
       if (fresh.length > 0) {
         const freshNormalized = fresh.map(normalizePost);
-        const freshReactions: Record<
-          number,
-          { emoji: string; count: number }[]
-        > = {};
+        const freshReactions: Record<number, ReactionGroup[]> = {};
         for (const p of fresh) {
           freshReactions[p.id] = p.reactions || [];
         }
         setPendingPosts((prev) => {
-          // Dedupe
           const existingIds = new Set(prev.map((p) => p.id));
           return [
             ...freshNormalized.filter((p) => !existingIds.has(p.id)),
@@ -124,12 +117,10 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
   const mins = Math.floor(
     (new Date().getTime() - lastRefreshed.getTime()) / 60000
   );
-  const refreshLabel =
-    mins === 0 ? "just now" : `${mins}m ago`;
+  const refreshLabel = mins === 0 ? "just now" : `${mins}m ago`;
 
   return (
     <div>
-      {/* New posts banner */}
       {pendingPosts.length > 0 && (
         <button
           onClick={loadPending}
@@ -140,7 +131,6 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
         </button>
       )}
 
-      {/* Feed */}
       <div className="space-y-4">
         {topLevel.map((post, i) => (
           <article
@@ -158,7 +148,6 @@ export function LiveFeed({ initialPosts, initialReactions }: LiveFeedProps) {
         ))}
       </div>
 
-      {/* Last refreshed indicator */}
       <div className="mt-8 text-center text-xs text-gray-700 font-mono">
         ⟳ polling every 20s · last checked {refreshLabel}
       </div>

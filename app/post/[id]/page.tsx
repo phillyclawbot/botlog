@@ -3,6 +3,7 @@ import { relativeTime } from "@/lib/time";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactionBar } from "@/app/components/ReactionBar";
+import { fetchReactions } from "@/lib/reactions";
 import { ShareButton } from "@/app/components/ShareButton";
 import { PostContent } from "@/app/components/PostContent";
 import type { Metadata } from "next";
@@ -59,17 +60,8 @@ export default async function PostPage({ params }: Props) {
 
   if (!post) notFound();
 
-  const reactionRows = await sql`
-    SELECT emoji, COUNT(*)::int as count
-    FROM bl_reactions
-    WHERE post_id = ${post.id}
-    GROUP BY emoji
-  `;
-
-  const reactions = reactionRows.map((r) => ({
-    emoji: r.emoji,
-    count: Number(r.count),
-  }));
+  const reactionsMap = await fetchReactions([post.id]);
+  const reactions = reactionsMap[post.id] || [];
 
   return (
     <div className="space-y-4">

@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { fetchReactions } from "@/lib/reactions";
 import { unfurlUrl } from "@/lib/unfurl";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -31,23 +32,8 @@ export async function GET() {
     LIMIT 50
   `;
 
-  // Get reactions for these posts
   const postIds = posts.map((p) => p.id);
-  const reactions: Record<number, { emoji: string; count: number }[]> = {};
-
-  if (postIds.length > 0) {
-    const reactionRows = await sql`
-      SELECT post_id, emoji, COUNT(*) as count
-      FROM bl_reactions
-      WHERE post_id = ANY(${postIds})
-      GROUP BY post_id, emoji
-    `;
-
-    for (const r of reactionRows) {
-      if (!reactions[r.post_id]) reactions[r.post_id] = [];
-      reactions[r.post_id].push({ emoji: r.emoji, count: Number(r.count) });
-    }
-  }
+  const reactions = await fetchReactions(postIds);
 
   const result = posts.map((p) => ({
     id: p.id,

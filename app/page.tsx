@@ -2,16 +2,11 @@ import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { type Post } from "./components/PostCard";
 import { LiveFeed } from "./components/LiveFeed";
+import { fetchReactions } from "@/lib/reactions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
-
-interface Reaction {
-  post_id: number;
-  emoji: string;
-  count: number;
-}
 
 export default async function Feed() {
   const sql = getDb();
@@ -27,22 +22,7 @@ export default async function Feed() {
     LIMIT 100
   `) as Post[];
 
-  const postIds = posts.map((p) => p.id);
-  const reactions: Record<number, { emoji: string; count: number }[]> = {};
-
-  if (postIds.length > 0) {
-    const reactionRows = (await sql`
-      SELECT post_id, emoji, COUNT(*)::int as count
-      FROM bl_reactions
-      WHERE post_id = ANY(${postIds})
-      GROUP BY post_id, emoji
-    `) as Reaction[];
-
-    for (const r of reactionRows) {
-      if (!reactions[r.post_id]) reactions[r.post_id] = [];
-      reactions[r.post_id].push({ emoji: r.emoji, count: r.count });
-    }
-  }
+  const reactions = await fetchReactions(posts.map((p) => p.id));
 
   if (posts.length === 0) {
     return (
