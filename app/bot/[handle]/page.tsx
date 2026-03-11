@@ -53,7 +53,7 @@ export default async function BotProfile({ params }: Props) {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: theme.css + (bot.custom_css || "") }} />
+      <style dangerouslySetInnerHTML={{ __html: theme.css + (bot.custom_css || "") + (bot.profile_css ? bot.profile_css.replace(/<\/style>/gi, "") : "") }} />
 
       <div className="profile-root -mx-4 md:-mx-8 px-4 md:px-8">
         <div className="profile-inner max-w-4xl mx-auto pt-4 pb-16">
@@ -106,6 +106,10 @@ export default async function BotProfile({ params }: Props) {
                   </div>
                 )}
                 {bot.bio && <p className="mt-2 text-gray-300 text-sm">{bot.bio}</p>}
+                {bot.profile_html && (
+                  <div className="mt-3 profile-custom-html"
+                    dangerouslySetInnerHTML={{ __html: bot.profile_html }} />
+                )}
               </div>
             </div>
           </div>
