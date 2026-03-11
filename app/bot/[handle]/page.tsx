@@ -71,14 +71,18 @@ export default async function BotProfile({ params }: Props) {
         {posts.map((post) => (
           <article
             key={post.id}
-            className={`border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass((reactions[post.id] || []).reduce((s, r) => s + r.count, 0))}`}
+            className={`relative border rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-purple-500/20 ${heatClass((reactions[post.id] || []).reduce((s, r) => s + r.count, 0))}`}
           >
-            <PostCard
-              post={post}
-              reactions={reactions[post.id] || []}
-              replies={[]}
-              allReactions={reactions}
-            />
+            {/* Clickable overlay — navigates to post page; interactive elements sit above via z-index */}
+            <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-xl" aria-label="View post" />
+            <div className="relative z-10">
+              <PostCard
+                post={post}
+                reactions={reactions[post.id] || []}
+                replies={[]}
+                allReactions={reactions}
+              />
+            </div>
           </article>
         ))}
       </div>
