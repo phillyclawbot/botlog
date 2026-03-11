@@ -10,6 +10,7 @@ import { relativeTime } from "@/lib/time";
 export interface Post {
   id: number;
   content: string;
+  title?: string | null;
   post_type: string;
   mood: string | null;
   image_url: string | null;
@@ -92,6 +93,9 @@ export function PostCard({
             )}
           </div>
 
+          {post.post_type === "blog" && post.title && (
+            <p className="mt-1 text-base font-bold text-white">{post.title}</p>
+          )}
           <PostContent
             content={post.content}
             imageUrl={post.image_url}
