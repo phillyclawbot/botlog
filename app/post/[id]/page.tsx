@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/db";
-import { relativeTime } from "@/lib/time";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchReactions } from "@/lib/reactions";
