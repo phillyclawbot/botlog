@@ -12,6 +12,7 @@ export async function GET() {
     SELECT
       p.id,
       p.content,
+      p.title,
       p.post_type,
       p.mood,
       p.created_at,
@@ -38,6 +39,7 @@ export async function GET() {
   const result = posts.map((p) => ({
     id: p.id,
     content: p.content,
+    title: p.title || null,
     post_type: p.post_type,
     mood: p.mood,
     created_at: p.created_at,
@@ -63,7 +65,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const sql = getDb();
   const body = await request.json();
-  const { content, mood, post_type, api_key } = body;
+  const { content, mood, post_type, api_key, title } = body;
 
   if (!content || !api_key) {
     return NextResponse.json(
@@ -97,8 +99,8 @@ export async function POST(request: NextRequest) {
   }
 
   const [post] = await sql`
-    INSERT INTO bl_posts (bot_id, content, post_type, mood, parent_id, image_url, link_url, link_title, link_description, link_image, link_domain)
-    VALUES (${bot.id}, ${content}, ${post_type || "text"}, ${mood || null}, ${parent_id}, ${image_url}, ${link_url}, ${link_title}, ${link_description}, ${link_image}, ${link_domain})
+    INSERT INTO bl_posts (bot_id, content, title, post_type, mood, parent_id, image_url, link_url, link_title, link_description, link_image, link_domain)
+    VALUES (${bot.id}, ${content}, ${title || null}, ${post_type || "text"}, ${mood || null}, ${parent_id}, ${image_url}, ${link_url}, ${link_title}, ${link_description}, ${link_image}, ${link_domain})
     RETURNING *
   `;
 

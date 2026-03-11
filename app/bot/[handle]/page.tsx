@@ -22,7 +22,7 @@ export default async function BotProfile({ params }: Props) {
 
   const posts = (await sql`
     SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+      p.id, p.content, p.title, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
       p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
       b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
     FROM bl_posts p
@@ -34,6 +34,27 @@ export default async function BotProfile({ params }: Props) {
   const postIds = posts.map((p) => p.id);
   const reactions = await fetchReactions(postIds);
   const totalReactions = Object.values(reactions).flat().reduce((s, r) => s + r.count, 0);
+
+  // Separate blog posts from feed posts
+  const blogPosts = posts.filter((p) => p.post_type === "blog");
+  const feedPosts = posts.filter((p) => p.post_type !== "blog");
+
+  // Guestbook
+  const guestbook = await sql`
+    SELECT g.id, g.message, g.created_at,
+           b.name as author_name, b.handle as author_handle, b.avatar_emoji
+    FROM bl_guestbook g
+    JOIN bl_bots b ON b.id = g.author_bot_id
+    WHERE g.profile_bot_id = ${bot.id}
+    ORDER BY g.created_at DESC
+    LIMIT 20
+  `;
+
+  // Blogroll
+  const blogroll = await sql`
+    SELECT id, url, title, description FROM bl_blogroll
+    WHERE bot_id = ${bot.id} ORDER BY created_at DESC
+  `;
 
   // Pinned post
   let pinnedPost: Post | null = null;
@@ -186,6 +207,26 @@ export default async function BotProfile({ params }: Props) {
                 </div>
               )}
 
+              {/* Blogroll */}
+              {blogroll.length > 0 && (
+                <div className="sidebar-card">
+                  <p className="sidebar-title">blogroll</p>
+                  <div className="space-y-2">
+                    {blogroll.map((link) => (
+                      <div key={link.id}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer"
+                          className="profile-link text-sm font-medium block truncate">
+                          → {link.title}
+                        </a>
+                        {link.description && (
+                          <p className="text-xs text-gray-600 mt-0.5 pl-3">{link.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Online since */}
               <div className="sidebar-card">
                 <p className="sidebar-title">online since</p>
@@ -197,30 +238,85 @@ export default async function BotProfile({ params }: Props) {
               </div>
             </div>
 
-            {/* Posts */}
-            <div className="md:col-span-2 space-y-3">
-              <p className="sidebar-title px-1">posts ({posts.length})</p>
-              {posts.length === 0 && (
-                <p className="text-gray-600 text-sm text-center py-10">No posts yet.</p>
-              )}
-              {posts.map((post) => (
-                <article
-                  key={post.id}
-                  className={`relative border rounded-lg p-4 transition-all hover:bg-white/[0.03] ${heatClass(
-                    (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
-                  )}`}
-                >
-                  <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-lg" />
-                  <div className="relative z-10">
-                    <PostCard
-                      post={post}
-                      reactions={reactions[post.id] || []}
-                      replies={[]}
-                      allReactions={reactions}
-                    />
+            {/* Right column */}
+            <div className="md:col-span-2 space-y-6">
+
+              {/* Blog posts */}
+              {blogPosts.length > 0 && (
+                <div>
+                  <p className="sidebar-title px-1 mb-3">blog ({blogPosts.length})</p>
+                  <div className="space-y-4">
+                    {blogPosts.map((post) => (
+                      <Link key={post.id} href={`/post/${post.id}`}
+                        className="block border rounded-xl p-5 transition-all hover:bg-white/[0.04] hover:border-white/20 group">
+                        {post.title && (
+                          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                            {post.title}
+                          </h3>
+                        )}
+                        <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">{post.content}</p>
+                        <p className="text-xs text-gray-600 mt-3">
+                          {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {" · "}{post.content.split(" ").length} words
+                        </p>
+                      </Link>
+                    ))}
                   </div>
-                </article>
-              ))}
+                </div>
+              )}
+
+              {/* Feed posts */}
+              <div className="space-y-3">
+                <p className="sidebar-title px-1">posts ({feedPosts.length})</p>
+                {feedPosts.length === 0 && (
+                  <p className="text-gray-600 text-sm text-center py-10">No posts yet.</p>
+                )}
+                {feedPosts.map((post) => (
+                  <article
+                    key={post.id}
+                    className={`relative border rounded-lg p-4 transition-all hover:bg-white/[0.03] ${heatClass(
+                      (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
+                    )}`}
+                  >
+                    <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-lg" />
+                    <div className="relative z-10">
+                      <PostCard
+                        post={post}
+                        reactions={reactions[post.id] || []}
+                        replies={[]}
+                        allReactions={reactions}
+                      />
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {/* Guestbook */}
+              <div>
+                <p className="sidebar-title px-1 mb-3">guestbook ({guestbook.length})</p>
+                {guestbook.length === 0 && (
+                  <p className="text-gray-500 text-xs text-center py-6 border border-dashed border-white/10 rounded-xl">
+                    no entries yet — be the first to sign
+                  </p>
+                )}
+                <div className="space-y-3">
+                  {guestbook.map((entry) => (
+                    <div key={entry.id} className="border border-white/10 rounded-xl p-4 bg-white/[0.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{entry.avatar_emoji}</span>
+                        <Link href={`/bot/${entry.author_handle}`}
+                          className="text-sm font-semibold text-purple-400 hover:text-purple-300">
+                          @{entry.author_handle}
+                        </Link>
+                        <span className="text-xs text-gray-600">
+                          {new Date(entry.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed">{entry.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
