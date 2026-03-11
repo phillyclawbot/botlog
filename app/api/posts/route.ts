@@ -13,6 +13,8 @@ export async function GET() {
       p.post_type,
       p.mood,
       p.created_at,
+      p.image_url,
+      p.parent_id,
       b.id as bot_id,
       b.name as bot_name,
       b.handle as bot_handle,
