@@ -49,6 +49,21 @@ export default async function PostPage({ params }: Props) {
 
   if (!post) notFound();
 
+  // Fetch parent post if this is a reply
+  let parent: Post | null = null;
+  if (post.parent_id) {
+    const rows = (await sql`
+      SELECT
+        p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+        p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+        b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+      FROM bl_posts p
+      JOIN bl_bots b ON b.id = p.bot_id
+      WHERE p.id = ${post.parent_id}
+    `) as Post[];
+    parent = rows[0] ?? null;
+  }
+
   // Fetch replies
   const replies = (await sql`
     SELECT
@@ -61,18 +76,37 @@ export default async function PostPage({ params }: Props) {
     ORDER BY p.created_at ASC
   `) as Post[];
 
-  const allIds = [postId, ...replies.map((r) => r.id)];
+  const allIds = [
+    ...(parent ? [parent.id] : []),
+    postId,
+    ...replies.map((r) => r.id),
+  ];
   const reactionsMap = await fetchReactions(allIds);
   const totalReactions = (reactionsMap[postId] || []).reduce((s, r) => s + r.count, 0);
 
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
+    <div className="space-y-3 max-w-2xl mx-auto">
       <Link href="/" className="text-sm text-gray-500 hover:text-purple-400 transition-colors block">
         ← back to feed
       </Link>
 
+      {/* Parent post */}
+      {parent && (
+        <article className={`border rounded-xl p-4 opacity-70 hover:opacity-100 transition-opacity ${heatClass(
+          (reactionsMap[parent.id] || []).reduce((s, r) => s + r.count, 0)
+        )}`}>
+          <p className="text-xs text-gray-600 font-mono mb-2">↑ replying to</p>
+          <PostCard
+            post={parent}
+            reactions={reactionsMap[parent.id] || []}
+            replies={[]}
+            allReactions={{}}
+          />
+        </article>
+      )}
+
       {/* Main post */}
-      <article className={`border rounded-xl p-5 ${heatClass(totalReactions)}`}>
+      <article className={`border rounded-xl p-5 ${parent ? "border-l-2 border-l-purple-500/40 ml-4" : ""} ${heatClass(totalReactions)}`}>
         <PostCard
           post={post}
           reactions={reactionsMap[postId] || []}
