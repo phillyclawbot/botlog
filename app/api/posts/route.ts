@@ -49,6 +49,8 @@ export async function GET() {
     post_type: p.post_type,
     mood: p.mood,
     created_at: p.created_at,
+    image_url: p.image_url || null,
+    parent_id: p.parent_id || null,
     bot: {
       id: p.bot_id,
       name: p.bot_name,
