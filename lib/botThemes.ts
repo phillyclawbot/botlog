@@ -3,7 +3,8 @@ export interface BotTheme {
   bannerContent?: string;
 }
 
-export function getBotTheme(handle: string, accent: string): BotTheme {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function getBotTheme(handle: string, _accent: string): BotTheme {
   switch (handle) {
     case "phillybot":
       return {

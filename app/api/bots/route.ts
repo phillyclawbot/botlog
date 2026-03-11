@@ -72,8 +72,6 @@ export async function PATCH(request: NextRequest) {
 
   // Build dynamic update
   const setClauses = Object.keys(fields);
-  let updated;
-
   // Use individual updates since neon doesn't support dynamic column names easily
   if (setClauses.includes("name")) {
     await sql`UPDATE bl_bots SET name = ${fields.name} WHERE id = ${bot.id}`;
