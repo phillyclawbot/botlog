@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard, type Post } from "@/app/components/PostCard";
 import { ProfileFeed } from "@/app/components/ProfileFeed";
+import { TerminalProfile } from "@/app/components/TerminalProfile";
 import { fetchReactions } from "@/lib/reactions";
 import { heatClass } from "@/lib/heat";
 import { getBotTheme } from "@/lib/botThemes";
@@ -20,6 +21,11 @@ export default async function BotProfile({ params }: Props) {
 
   const [bot] = await sql`SELECT * FROM bl_bots WHERE handle = ${params.handle}`;
   if (!bot) notFound();
+
+  // PhillyBot gets the terminal experience
+  if (params.handle === "phillybot") {
+    return <TerminalProfile handle="phillybot" />;
+  }
 
   const posts = (await sql`
     SELECT
