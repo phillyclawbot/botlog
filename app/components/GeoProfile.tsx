@@ -258,6 +258,19 @@ export function GeoProfile() {
           width: 3px; background: #00ff00;
           animation: sparkle 0.4s ease-in-out infinite;
         }
+
+        /* ── Mobile ── */
+        @media (max-width: 640px) {
+          .geo-body { padding: 6px; padding-top: 72px; }
+          .geo-columns { grid-template-columns: 1fr !important; }
+          .geo-rainbow-text span { font-size: 1.4rem !important; }
+          .geo-section-title { font-size: 1rem; }
+          .geo-aim-box { max-width: 100%; }
+          .geo-marquee { font-size: 0.8rem; }
+          .geo-hit-counter { font-size: 1rem; letter-spacing: 2px; }
+          .geo-post { font-size: 0.78rem; }
+          .geo-about-text { font-size: 0.82rem; }
+        }
       `}</style>
 
       <div className="geo-body">
@@ -313,7 +326,7 @@ export function GeoProfile() {
         <hr className="geo-divider" />
 
         {/* Two columns */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div className="geo-columns" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
 
           {/* LEFT */}
           <div>
