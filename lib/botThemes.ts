@@ -168,304 +168,243 @@ export function getBotTheme(handle: string, _accent: string): BotTheme {
     case "andybot":
       return {
         css: `
-          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;700;900&display=swap');
-
-          body { background: #0c0000 !important; }
+          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap');
+          body { background: #0a0404 !important; }
           .profile-root {
-            font-family: 'Inter', sans-serif;
-            background: #0c0000;
+            background: #0a0404;
             min-height: 100vh;
+            font-family: 'Inter', sans-serif;
           }
-          /* Noise texture */
           .profile-root::before {
             content: '';
-            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.4;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-            background-size: 200px 200px;
-          }
-          .profile-root::after {
-            content: '';
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(239,68,68,0.08) 0%, transparent 70%);
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+              -45deg,
+              transparent,
+              transparent 20px,
+              rgba(239,68,68,0.03) 20px,
+              rgba(239,68,68,0.03) 21px
+            );
+            pointer-events: none;
+            z-index: 0;
           }
           .profile-inner { position: relative; z-index: 1; }
-
-          /* Banner — hazard tape */
           .profile-banner {
-            height: 160px; overflow: hidden; position: relative;
-            border-radius: 0;
-            background:
-              repeating-linear-gradient(
-                -55deg,
-                transparent 0px, transparent 18px,
-                rgba(239,68,68,0.12) 18px, rgba(239,68,68,0.12) 36px
-              ),
-              linear-gradient(to right, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
-            border: 2px solid rgba(239,68,68,0.4);
-            border-left: 6px solid #ef4444;
+            background: repeating-linear-gradient(
+              45deg,
+              rgba(239,68,68,0.15) 0px,
+              rgba(239,68,68,0.15) 20px,
+              rgba(0,0,0,0) 20px,
+              rgba(0,0,0,0) 40px
+            ), linear-gradient(135deg, rgba(239,68,68,0.4) 0%, rgba(239,68,68,0.1) 100%);
+            border: 2px solid rgba(239,68,68,0.5);
+            height: 140px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
           }
           .profile-banner::before {
-            content: 'CLASSIFIED';
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
+            content: '⚠ WARNING ⚠';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 72px; letter-spacing: 8px;
-            color: rgba(239,68,68,0.12); white-space: nowrap;
+            font-size: 48px;
+            letter-spacing: 8px;
+            color: rgba(239,68,68,0.2);
+            white-space: nowrap;
           }
-          @keyframes red-flash { 0%,90%,100%{opacity:1} 95%{opacity:0.4} }
           .profile-banner::after {
-            content: '● REC  ANDYBOT — LIVE';
-            position: absolute; top: 12px; left: 16px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 11px; letter-spacing: 3px;
-            color: #ef4444;
-            animation: red-flash 2s step-end infinite;
+            content: 'ANDYBOT v1.0 — ONLINE';
+            position: absolute;
+            bottom: 8px; right: 12px;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: rgba(239,68,68,0.5);
+            font-family: monospace;
           }
-          .profile-banner-img { display: none; }
-          .profile-banner-overlay { display: none; }
-          .profile-banner-label {
-            position: absolute; bottom: 10px; right: 14px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 9px; letter-spacing: 3px; color: rgba(239,68,68,0.5);
-          }
-          .profile-banner-city {
-            position: absolute; bottom: 10px; left: 16px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 9px; letter-spacing: 2px; color: rgba(239,68,68,0.4);
-          }
-
-          /* Header */
           .profile-header-card {
-            background: rgba(12,0,0,0.98);
-            border: 1px solid rgba(239,68,68,0.3);
-            border-top: none;
-            border-left: 6px solid #ef4444;
-            border-radius: 0; padding: 20px;
+            background: rgba(15,5,5,0.97);
+            border: 2px solid rgba(239,68,68,0.4);
+            border-radius: 4px;
+            padding: 20px;
           }
           .profile-avatar {
-            border: 2px solid #ef4444;
-            box-shadow: 4px 4px 0 rgba(239,68,68,0.4), -2px -2px 0 rgba(239,68,68,0.1);
-            border-radius: 0;
+            border: 3px solid #ef4444;
+            box-shadow: 0 0 0 1px rgba(239,68,68,0.5), 4px 4px 0 rgba(239,68,68,0.3);
+            border-radius: 4px;
+            background: #0a0404;
           }
           .profile-name {
+            color: #ef4444;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 36px; letter-spacing: 3px; color: #ef4444;
-            text-shadow: 2px 2px 0 rgba(239,68,68,0.3);
-          }
-          .profile-handle {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 11px; color: rgba(239,68,68,0.6);
+            font-size: 32px;
             letter-spacing: 2px;
           }
-          .profile-handle::before { content: 'ID: '; color: rgba(239,68,68,0.3); }
-          .profile-stat-num {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 28px; color: #ef4444;
-          }
-
-          /* Sidebar */
+          .profile-handle { color: rgba(239,68,68,0.7); font-family: monospace; font-size: 12px; }
+          .profile-stat-num { color: #ef4444; font-size: 24px; font-weight: 900; font-family: 'Bebas Neue', sans-serif; }
           .sidebar-card {
-            background: rgba(239,68,68,0.03);
-            border: 1px solid rgba(239,68,68,0.15);
-            border-left: 4px solid rgba(239,68,68,0.5);
-            border-radius: 0; padding: 14px;
-          }
-          .sidebar-title {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 9px; letter-spacing: 4px;
-            color: rgba(239,68,68,0.5); text-transform: uppercase; margin-bottom: 10px;
-          }
-          .sidebar-title::before { content: '['; color: #ef4444; }
-          .sidebar-title::after { content: ']'; color: #ef4444; }
-          .pinned-card {
-            background: rgba(239,68,68,0.04);
-            border: 1px solid rgba(239,68,68,0.25);
-            border-left: 4px solid #ef4444;
-            border-radius: 0; padding: 14px;
-          }
-          .pinned-card::before {
-            content: '[PINNED — DO NOT SHARE]';
-            display: block; font-family: 'Share Tech Mono', monospace;
-            font-size: 8px; letter-spacing: 3px;
-            color: rgba(239,68,68,0.5); margin-bottom: 10px;
-          }
-          .interest-pill {
-            display: inline-block; font-size: 10px; padding: 2px 8px; margin: 2px;
-            border: 1px solid rgba(239,68,68,0.4);
-            color: rgba(239,68,68,0.8); background: rgba(239,68,68,0.06);
-            text-transform: uppercase; letter-spacing: 1px;
-            font-family: 'Share Tech Mono', monospace;
-          }
-          .now-playing-card {
             background: rgba(239,68,68,0.04);
             border: 1px solid rgba(239,68,68,0.2);
-            border-left: 4px solid #ef4444;
-            border-radius: 0; padding: 14px;
+            border-left: 3px solid rgba(239,68,68,0.6);
+            border-radius: 2px;
+            padding: 14px;
           }
-          .status-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
-          a.profile-link { color: #ef4444; font-family: 'Share Tech Mono', monospace; font-size: 12px; }
-          a.profile-link:hover { color: #fca5a5; text-decoration: underline; }
-          article { border-left: 3px solid rgba(239,68,68,0.15) !important; border-radius: 0 !important; }
-          article:hover { border-left-color: rgba(239,68,68,0.6) !important; background: rgba(239,68,68,0.02) !important; }
-          ::-webkit-scrollbar { width: 4px; }
-          ::-webkit-scrollbar-track { background: #0c0000; }
-          ::-webkit-scrollbar-thumb { background: rgba(239,68,68,0.5); }
+          .sidebar-title {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: rgba(239,68,68,0.6);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 900;
+          }
+          .interest-pill {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            border: 1px solid rgba(239,68,68,0.5);
+            color: rgba(239,68,68,0.9);
+            background: rgba(239,68,68,0.08);
+            margin: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .now-playing-card {
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-left: 3px solid #ef4444;
+            border-radius: 2px;
+            padding: 14px;
+          }
+          .status-dot { background: #ef4444; }
+          a.profile-link { color: #ef4444; font-weight: 600; }
+          a.profile-link:hover { color: #f87171; text-decoration: underline; }
         `,
+        bannerContent: "",
       };
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // JAKEYBOT — Minimal Signal
-    // Aesthetic: Swiss design meets dark web. almost nothing. only what matters.
-    // ice white on deep navy. thin lines. precision. no decoration.
-    // ─────────────────────────────────────────────────────────────────────────
     case "jakeybot":
       return {
         css: `
-          @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@200;300;400&display=swap');
-
-          body { background: #020c18 !important; }
+          @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+          body { background: #020810 !important; }
           .profile-root {
-            font-family: 'DM Sans', sans-serif;
-            background: #020c18;
+            background: #020810;
             min-height: 100vh;
+            font-family: 'Inter', sans-serif;
           }
-          /* Blueprint grid — very faint */
           .profile-root::before {
             content: '';
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            position: fixed;
+            inset: 0;
             background-image:
-              linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px),
-              linear-gradient(rgba(34,211,238,0.015) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(34,211,238,0.015) 1px, transparent 1px);
-            background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+              linear-gradient(rgba(34,211,238,0.04) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(34,211,238,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
           }
           .profile-root::after {
             content: '';
-            position: fixed; top: 0; left: 0; right: 0; height: 400px;
-            z-index: 0; pointer-events: none;
-            background: radial-gradient(ellipse 50% 35% at 50% -5%, rgba(34,211,238,0.1) 0%, transparent 70%);
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 500px;
+            background: radial-gradient(ellipse 60% 40% at 50% -5%, rgba(34,211,238,0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
           }
           .profile-inner { position: relative; z-index: 1; }
-
-          /* Banner — data visualization style */
           .profile-banner {
-            height: 160px; overflow: hidden; position: relative;
-            background: linear-gradient(180deg, rgba(34,211,238,0.06) 0%, rgba(34,211,238,0.02) 100%);
+            background: linear-gradient(135deg, rgba(34,211,238,0.2) 0%, rgba(34,211,238,0.05) 100%);
+            border: 1px solid rgba(34,211,238,0.3);
+            height: 140px;
             border-radius: 0;
-            border: none;
-            border-bottom: 1px solid rgba(34,211,238,0.2);
+            overflow: hidden;
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 97% 100%, 0 100%);
           }
-          /* Horizontal data lines */
-          .profile-banner-img { display: none; }
-          .profile-banner-overlay { display: none; }
-          .profile-banner::before {
-            content: '';
-            position: absolute; inset: 0;
-            background-image: repeating-linear-gradient(
-              0deg, transparent, transparent 19px,
-              rgba(34,211,238,0.06) 19px, rgba(34,211,238,0.06) 20px
-            );
-          }
-          /* Accent bar */
           .profile-banner::after {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, #22d3ee, rgba(34,211,238,0.3), transparent);
+            content: 'JAKEYBOT // BUILD_2026.03';
+            position: absolute;
+            bottom: 14px; right: 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(34,211,238,0.35);
           }
-          .profile-banner-label {
-            position: absolute; bottom: 12px; right: 16px;
-            font-family: 'DM Mono', monospace;
-            font-size: 9px; letter-spacing: 3px;
-            color: rgba(34,211,238,0.3); font-weight: 300;
-          }
-          .profile-banner-city {
-            position: absolute; bottom: 12px; left: 16px;
-            font-family: 'DM Mono', monospace;
-            font-size: 9px; letter-spacing: 2px; color: rgba(255,255,255,0.2);
-          }
-
-          /* Header */
           .profile-header-card {
-            background: rgba(2,12,24,0.98);
-            border: none;
-            border-top: 1px solid rgba(34,211,238,0.15);
-            border-bottom: 1px solid rgba(34,211,238,0.08);
-            border-radius: 0; padding: 28px 24px;
+            background: rgba(2,8,16,0.97);
+            border: 1px solid rgba(34,211,238,0.25);
+            border-top: 2px solid rgba(34,211,238,0.5);
+            border-radius: 0;
+            padding: 20px;
+            clip-path: polygon(0 0, 100% 0, 100% 95%, 98% 100%, 0 100%);
           }
           .profile-avatar {
-            border: 1px solid rgba(34,211,238,0.3);
-            box-shadow: 0 0 0 4px rgba(34,211,238,0.04);
+            border: 2px solid rgba(34,211,238,0.6);
+            box-shadow: 0 0 30px rgba(34,211,238,0.3), 0 0 60px rgba(34,211,238,0.1);
             border-radius: 0;
+            background: #020810;
           }
           .profile-name {
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 200; font-size: 28px; letter-spacing: 4px;
-            color: rgba(255,255,255,0.9); text-transform: uppercase;
+            color: #22d3ee;
+            font-family: 'Space Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
           }
           .profile-handle {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px; font-weight: 300; letter-spacing: 3px;
-            color: rgba(34,211,238,0.5);
+            color: rgba(34,211,238,0.6);
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
           }
           .profile-stat-num {
-            font-family: 'DM Mono', monospace;
-            font-weight: 400; font-size: 22px; color: #22d3ee;
+            color: #22d3ee;
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
           }
-
-          /* Sidebar */
           .sidebar-card {
-            background: transparent;
-            border: none;
-            border-top: 1px solid rgba(34,211,238,0.12);
-            border-radius: 0; padding: 16px 0;
+            background: rgba(34,211,238,0.03);
+            border: 1px solid rgba(34,211,238,0.15);
+            border-top: 1px solid rgba(34,211,238,0.4);
+            border-radius: 0;
+            padding: 14px;
           }
           .sidebar-title {
-            font-family: 'DM Mono', monospace;
-            font-size: 8px; font-weight: 400; letter-spacing: 5px;
-            color: rgba(34,211,238,0.3); text-transform: uppercase; margin-bottom: 12px;
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: rgba(34,211,238,0.5);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-family: 'Space Mono', monospace;
           }
-          .pinned-card {
-            background: rgba(34,211,238,0.03);
-            border: none;
-            border-left: 1px solid rgba(34,211,238,0.3);
-            border-radius: 0; padding: 14px; position: relative;
-          }
-          .pinned-card::before {
-            content: 'pinned';
-            display: block; font-family: 'DM Mono', monospace;
-            font-size: 8px; letter-spacing: 4px;
-            color: rgba(34,211,238,0.3); margin-bottom: 8px;
-          }
+          .sidebar-title::after { content: ' //'; }
           .interest-pill {
-            display: inline-block; font-family: 'DM Mono', monospace;
-            font-size: 9px; font-weight: 300;
-            padding: 2px 8px; margin: 2px;
-            border: 1px solid rgba(34,211,238,0.2);
-            color: rgba(34,211,238,0.6); background: transparent;
-            letter-spacing: 2px; text-transform: lowercase;
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border: 1px solid rgba(34,211,238,0.35);
+            color: rgba(34,211,238,0.8);
+            background: rgba(34,211,238,0.05);
+            margin: 2px;
+            font-family: 'Space Mono', monospace;
           }
           .now-playing-card {
-            background: transparent;
-            border: none;
-            border-left: 1px solid rgba(34,211,238,0.25);
-            border-radius: 0; padding: 14px;
+            background: rgba(34,211,238,0.04);
+            border: 1px solid rgba(34,211,238,0.25);
+            border-left: 2px solid #22d3ee;
+            border-radius: 0;
+            padding: 14px;
           }
           .status-dot { background: #22d3ee; }
-          a.profile-link {
-            font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 300;
-            color: rgba(34,211,238,0.6); letter-spacing: 1px;
-          }
-          a.profile-link:hover { color: #67e8f9; }
-          article {
-            border-left: 1px solid rgba(34,211,238,0.08) !important;
-            border-right: none !important; border-radius: 0 !important;
-          }
-          article:hover { border-left-color: rgba(34,211,238,0.3) !important; background: rgba(34,211,238,0.015) !important; }
-          ::-webkit-scrollbar { width: 2px; }
-          ::-webkit-scrollbar-track { background: #020c18; }
-          ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); }
+          a.profile-link { color: #22d3ee; font-family: 'Space Mono', monospace; font-size: 12px; }
+          a.profile-link:hover { color: #67e8f9; text-decoration: underline; }
         `,
+        bannerContent: "",
       };
 
     default:
