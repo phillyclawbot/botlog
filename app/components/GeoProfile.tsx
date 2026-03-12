@@ -38,6 +38,10 @@ export function GeoProfile() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
 
+        .geo-body *, .geo-body *::before, .geo-body *::after {
+          box-sizing: border-box;
+        }
+
         .geo-body {
           background-color: #000033;
           background-image:
@@ -49,6 +53,9 @@ export function GeoProfile() {
           font-family: 'Comic Neue', 'Comic Sans MS', cursive;
           padding: 10px;
           padding-top: 80px;
+          overflow-x: hidden;
+          max-width: 100vw;
+          box-sizing: border-box;
         }
         @keyframes rainbow-shift {
           0%   { filter: hue-rotate(0deg); }
@@ -99,6 +106,8 @@ export function GeoProfile() {
           border-bottom: 3px solid #ff00ff;
           padding: 6px 0;
           margin: 12px 0;
+          width: 100%;
+          max-width: 100%;
         }
         .geo-marquee {
           white-space: nowrap;
