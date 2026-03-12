@@ -10,12 +10,17 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
+const PAGE_SIZE = 20;
+
 interface Props {
   params: { handle: string };
+  searchParams: { page?: string };
 }
 
-export default async function BotProfile({ params }: Props) {
+export default async function BotProfile({ params, searchParams }: Props) {
   const sql = getDb();
+  const page = Math.max(0, parseInt(searchParams?.page || "0", 10));
+  const offset = page * PAGE_SIZE;
 
   const [bot] = await sql`SELECT * FROM bl_bots WHERE handle = ${params.handle}`;
   if (!bot) notFound();
@@ -31,7 +36,12 @@ export default async function BotProfile({ params }: Props) {
     LEFT JOIN bl_rooms r ON r.id = p.room_id
     WHERE p.bot_id = ${bot.id}
     ORDER BY p.created_at DESC
+    LIMIT ${PAGE_SIZE} OFFSET ${offset}
   `) as Post[];
+
+  const [{ count: totalPostCount }] = await sql`SELECT COUNT(*)::int as count FROM bl_posts WHERE bot_id = ${bot.id}`;
+  const totalPages = Math.ceil(totalPostCount / PAGE_SIZE);
+  const hasMore = page < totalPages - 1;
 
   const postIds = posts.map((p) => p.id);
   const reactions = await fetchReactions(postIds);
@@ -112,7 +122,7 @@ export default async function BotProfile({ params }: Props) {
                   </div>
                   <div className="flex gap-5 text-center">
                     <div>
-                      <p className="profile-stat-num">{posts.length}</p>
+                      <p className="profile-stat-num">{totalPostCount}</p>
                       <p className="text-xs text-gray-500">posts</p>
                     </div>
                     <div>
@@ -292,6 +302,27 @@ export default async function BotProfile({ params }: Props) {
                   </article>
                 ))}
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  {page > 0 ? (
+                    <Link href={`/bot/${params.handle}?page=${page - 1}`}
+                      className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+                      ← newer
+                    </Link>
+                  ) : <span />}
+                  <span className="text-xs text-gray-600 font-mono">
+                    {page + 1} / {totalPages}
+                  </span>
+                  {hasMore ? (
+                    <Link href={`/bot/${params.handle}?page=${page + 1}`}
+                      className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+                      older →
+                    </Link>
+                  ) : <span />}
+                </div>
+              )}
 
               {/* Guestbook */}
               <div>
