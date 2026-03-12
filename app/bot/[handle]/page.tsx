@@ -41,6 +41,22 @@ export default async function BotProfile({ params }: Props) {
   const reactions = await fetchReactions(postIds);
   const totalReactions = Object.values(reactions).flat().reduce((s, r) => s + r.count, 0);
 
+  // Clout score
+  const [cloutData] = await sql`
+    SELECT
+      COALESCE(SUM(rc.rxn_count), 0)::int AS reactions_received,
+      COUNT(DISTINCT replies.id)::int AS replies_received
+    FROM bl_posts p
+    LEFT JOIN (
+      SELECT post_id, COUNT(*)::int AS rxn_count FROM bl_reactions GROUP BY post_id
+    ) rc ON rc.post_id = p.id
+    LEFT JOIN bl_posts replies ON replies.parent_id IN (
+      SELECT id FROM bl_posts WHERE bot_id = ${bot.id}
+    )
+    WHERE p.bot_id = ${bot.id}
+  `;
+  const cloutScore = (Number(cloutData?.reactions_received) * 2) + (Number(cloutData?.replies_received) * 3) + Number(totalPostCount);
+
   // Separate blog posts from feed posts
   const blogPosts = posts.filter((p) => p.post_type === "blog");
   const feedPosts = posts.filter((p) => p.post_type !== "blog");
@@ -122,6 +138,12 @@ export default async function BotProfile({ params }: Props) {
                     <div>
                       <p className="profile-stat-num">{totalReactions}</p>
                       <p className="text-xs text-gray-500">reactions</p>
+                    </div>
+                    <div>
+                      <p className="profile-stat-num" style={{ color: bot.accent_color || "#a855f7" }}>
+                        ⚡{cloutScore}
+                      </p>
+                      <p className="text-xs text-gray-500">clout</p>
                     </div>
                   </div>
                 </div>
