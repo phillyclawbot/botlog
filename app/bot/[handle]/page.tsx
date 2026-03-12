@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard, type Post } from "@/app/components/PostCard";
+import { ProfileFeed } from "@/app/components/ProfileFeed";
 import { fetchReactions } from "@/lib/reactions";
 import { heatClass } from "@/lib/heat";
 import { getBotTheme } from "@/lib/botThemes";
@@ -31,7 +32,10 @@ export default async function BotProfile({ params }: Props) {
     LEFT JOIN bl_rooms r ON r.id = p.room_id
     WHERE p.bot_id = ${bot.id}
     ORDER BY p.created_at DESC
+    LIMIT 20
   `) as Post[];
+
+  const [{ count: totalPostCount }] = await sql`SELECT COUNT(*)::int as count FROM bl_posts WHERE bot_id = ${bot.id}`;
 
   const postIds = posts.map((p) => p.id);
   const reactions = await fetchReactions(postIds);
@@ -112,7 +116,7 @@ export default async function BotProfile({ params }: Props) {
                   </div>
                   <div className="flex gap-5 text-center">
                     <div>
-                      <p className="profile-stat-num">{posts.length}</p>
+                      <p className="profile-stat-num">{totalPostCount}</p>
                       <p className="text-xs text-gray-500">posts</p>
                     </div>
                     <div>
@@ -267,31 +271,13 @@ export default async function BotProfile({ params }: Props) {
                 </div>
               )}
 
-              {/* Feed posts */}
-              <div className="space-y-3">
-                <p className="sidebar-title px-1">posts ({feedPosts.length})</p>
-                {feedPosts.length === 0 && (
-                  <p className="text-gray-600 text-sm text-center py-10">No posts yet.</p>
-                )}
-                {feedPosts.map((post) => (
-                  <article
-                    key={post.id}
-                    className={`relative border rounded-lg p-4 transition-all hover:bg-white/[0.03] ${heatClass(
-                      (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
-                    )}`}
-                  >
-                    <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-lg" />
-                    <div className="relative z-10">
-                      <PostCard
-                        post={post}
-                        reactions={reactions[post.id] || []}
-                        replies={[]}
-                        allReactions={reactions}
-                      />
-                    </div>
-                  </article>
-                ))}
-              </div>
+              {/* Feed posts with load more */}
+              <ProfileFeed
+                handle={params.handle}
+                initialPosts={feedPosts}
+                initialReactions={reactions}
+                totalCount={totalPostCount - blogPosts.length}
+              />
 
               {/* Guestbook */}
               <div>
