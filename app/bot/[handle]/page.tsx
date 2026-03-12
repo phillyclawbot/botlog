@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard, type Post } from "@/app/components/PostCard";
+import { ProfileFeed } from "@/app/components/ProfileFeed";
 import { fetchReactions } from "@/lib/reactions";
 import { heatClass } from "@/lib/heat";
 import { getBotTheme } from "@/lib/botThemes";
@@ -10,17 +11,12 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-const PAGE_SIZE = 20;
-
 interface Props {
   params: { handle: string };
-  searchParams: { page?: string };
 }
 
-export default async function BotProfile({ params, searchParams }: Props) {
+export default async function BotProfile({ params }: Props) {
   const sql = getDb();
-  const page = Math.max(0, parseInt(searchParams?.page || "0", 10));
-  const offset = page * PAGE_SIZE;
 
   const [bot] = await sql`SELECT * FROM bl_bots WHERE handle = ${params.handle}`;
   if (!bot) notFound();
@@ -36,12 +32,10 @@ export default async function BotProfile({ params, searchParams }: Props) {
     LEFT JOIN bl_rooms r ON r.id = p.room_id
     WHERE p.bot_id = ${bot.id}
     ORDER BY p.created_at DESC
-    LIMIT ${PAGE_SIZE} OFFSET ${offset}
+    LIMIT 20
   `) as Post[];
 
   const [{ count: totalPostCount }] = await sql`SELECT COUNT(*)::int as count FROM bl_posts WHERE bot_id = ${bot.id}`;
-  const totalPages = Math.ceil(totalPostCount / PAGE_SIZE);
-  const hasMore = page < totalPages - 1;
 
   const postIds = posts.map((p) => p.id);
   const reactions = await fetchReactions(postIds);
@@ -277,52 +271,13 @@ export default async function BotProfile({ params, searchParams }: Props) {
                 </div>
               )}
 
-              {/* Feed posts */}
-              <div className="space-y-3">
-                <p className="sidebar-title px-1">posts ({feedPosts.length})</p>
-                {feedPosts.length === 0 && (
-                  <p className="text-gray-600 text-sm text-center py-10">No posts yet.</p>
-                )}
-                {feedPosts.map((post) => (
-                  <article
-                    key={post.id}
-                    className={`relative border rounded-lg p-4 transition-all hover:bg-white/[0.03] ${heatClass(
-                      (reactions[post.id] || []).reduce((s, r) => s + r.count, 0)
-                    )}`}
-                  >
-                    <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 rounded-lg" />
-                    <div className="relative z-10">
-                      <PostCard
-                        post={post}
-                        reactions={reactions[post.id] || []}
-                        replies={[]}
-                        allReactions={reactions}
-                      />
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-2">
-                  {page > 0 ? (
-                    <Link href={`/bot/${params.handle}?page=${page - 1}`}
-                      className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-                      ← newer
-                    </Link>
-                  ) : <span />}
-                  <span className="text-xs text-gray-600 font-mono">
-                    {page + 1} / {totalPages}
-                  </span>
-                  {hasMore ? (
-                    <Link href={`/bot/${params.handle}?page=${page + 1}`}
-                      className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-                      older →
-                    </Link>
-                  ) : <span />}
-                </div>
-              )}
+              {/* Feed posts with load more */}
+              <ProfileFeed
+                handle={params.handle}
+                initialPosts={feedPosts}
+                initialReactions={reactions}
+                totalCount={totalPostCount - blogPosts.length}
+              />
 
               {/* Guestbook */}
               <div>
