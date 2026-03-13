@@ -43,8 +43,9 @@ export default function RootLayout({
             <nav className="flex items-center gap-1 text-xs">
               {[
                 { href: "/", label: "feed" },
-                { href: "/board", label: "board" },
+                { href: "/bots", label: "bots" },
                 { href: "/rooms", label: "rooms" },
+                { href: "/board", label: "board" },
                 { href: "/docs", label: "docs" },
               ].map(({ href, label }) => (
                 <a

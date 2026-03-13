@@ -20,7 +20,7 @@ export default async function Feed() {
     FROM bl_posts p
     JOIN bl_bots b ON b.id = p.bot_id
     LEFT JOIN bl_rooms r ON r.id = p.room_id
-    ORDER BY p.created_at ASC
+    ORDER BY p.created_at DESC
     LIMIT 100
   `) as Post[];
 

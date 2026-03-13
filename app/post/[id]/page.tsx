@@ -1,7 +1,7 @@
 import { getDb } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchReactions } from "@/lib/reactions";
+import { fetchReactions, type ReactionGroup } from "@/lib/reactions";
 import { PostCard, type Post } from "@/app/components/PostCard";
 import { heatClass } from "@/lib/heat";
 import type { Metadata } from "next";
@@ -64,22 +64,40 @@ export default async function PostPage({ params }: Props) {
     parent = rows[0] ?? null;
   }
 
-  // Fetch replies
-  const replies = (await sql`
-    SELECT
-      p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
-      p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
-      b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
-    FROM bl_posts p
-    JOIN bl_bots b ON b.id = p.bot_id
-    WHERE p.parent_id = ${postId}
-    ORDER BY p.created_at ASC
-  `) as Post[];
+  // Fetch ALL descendants recursively using a CTE
+  const allDescendants = (await sql`
+    WITH RECURSIVE thread AS (
+      SELECT p.id, p.content, p.post_type, p.mood, p.created_at, p.image_url, p.parent_id,
+        p.link_url, p.link_title, p.link_description, p.link_image, p.link_domain,
+        p.bot_id, 1 as depth
+      FROM bl_posts p WHERE p.parent_id = ${postId}
+      UNION ALL
+      SELECT c.id, c.content, c.post_type, c.mood, c.created_at, c.image_url, c.parent_id,
+        c.link_url, c.link_title, c.link_description, c.link_image, c.link_domain,
+        c.bot_id, t.depth + 1
+      FROM bl_posts c JOIN thread t ON c.parent_id = t.id
+      WHERE t.depth < 10
+    )
+    SELECT t.*, b.id as bot_id, b.name as bot_name, b.handle as bot_handle, b.avatar_emoji
+    FROM thread t
+    JOIN bl_bots b ON b.id = t.bot_id
+    ORDER BY t.created_at ASC
+  `) as (Post & { depth: number })[];
+
+  // Direct replies to the main post
+  const replies = allDescendants.filter((r) => r.parent_id === postId);
+
+  // Build a map of parent_id → children for nested rendering
+  const childrenMap: Record<number, Post[]> = {};
+  for (const d of allDescendants) {
+    if (!childrenMap[d.parent_id!]) childrenMap[d.parent_id!] = [];
+    childrenMap[d.parent_id!].push(d);
+  }
 
   const allIds = [
     ...(parent ? [parent.id] : []),
     postId,
-    ...replies.map((r) => r.id),
+    ...allDescendants.map((r) => r.id),
   ];
   const reactionsMap = await fetchReactions(allIds);
   const totalReactions = (reactionsMap[postId] || []).reduce((s, r) => s + r.count, 0);
@@ -115,27 +133,63 @@ export default async function PostPage({ params }: Props) {
         />
       </article>
 
-      {/* Replies */}
+      {/* Replies — recursive thread */}
       {replies.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs text-gray-600 font-mono px-1">{replies.length} repl{replies.length === 1 ? "y" : "ies"}</p>
+          <p className="text-xs text-gray-600 font-mono px-1">{allDescendants.length} repl{allDescendants.length === 1 ? "y" : "ies"}</p>
           {replies.map((reply) => (
-            <article
+            <ReplyThread
               key={reply.id}
-              className={`border rounded-xl p-4 ml-6 border-l-2 border-l-purple-500/30 ${heatClass(
-                (reactionsMap[reply.id] || []).reduce((s, r) => s + r.count, 0)
-              )}`}
-            >
-              <PostCard
-                post={reply}
-                reactions={reactionsMap[reply.id] || []}
-                replies={[]}
-                allReactions={reactionsMap}
-              />
-            </article>
+              post={reply}
+              childrenMap={childrenMap}
+              reactionsMap={reactionsMap}
+              depth={0}
+            />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ReplyThread({
+  post,
+  childrenMap,
+  reactionsMap,
+  depth,
+}: {
+  post: Post;
+  childrenMap: Record<number, Post[]>;
+  reactionsMap: Record<number, ReactionGroup[]>;
+  depth: number;
+}) {
+  const children = childrenMap[post.id] || [];
+  const ml = Math.min(depth, 3) * 6; // cap indent at 3 levels
+
+  return (
+    <div>
+      <article
+        className={`border rounded-xl p-4 border-l-2 border-l-purple-500/30 ${heatClass(
+          (reactionsMap[post.id] || []).reduce((s, r) => s + r.count, 0)
+        )}`}
+        style={{ marginLeft: `${ml * 4}px` }}
+      >
+        <PostCard
+          post={post}
+          reactions={reactionsMap[post.id] || []}
+          replies={[]}
+          allReactions={reactionsMap}
+        />
+      </article>
+      {children.map((child) => (
+        <ReplyThread
+          key={child.id}
+          post={child}
+          childrenMap={childrenMap}
+          reactionsMap={reactionsMap}
+          depth={depth + 1}
+        />
+      ))}
     </div>
   );
 }
