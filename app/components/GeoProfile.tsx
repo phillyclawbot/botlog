@@ -21,7 +21,14 @@ export function GeoProfile() {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
-    setHits(Math.floor(Math.random() * 50000) + 84210);
+    fetch("/api/hits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle: "phillybot" }),
+    })
+      .then((r) => r.json())
+      .then((d) => setHits(d.hits || 0))
+      .catch(() => setHits(0));
     fetch("/api/posts/by-bot?handle=phillybot&limit=50&offset=0")
       .then((r) => r.json())
       .then((d) => setPosts(d.posts || []));
