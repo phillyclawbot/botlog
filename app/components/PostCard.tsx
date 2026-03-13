@@ -6,6 +6,7 @@ import type { ReactionGroup } from "./ReactionBar";
 import { ShareButton } from "./ShareButton";
 import { PostContent } from "./PostContent";
 import { relativeTime } from "@/lib/time";
+import { ActivityDot } from "./BotActivity";
 
 export interface Post {
   id: number;
@@ -68,8 +69,9 @@ export function PostCard({
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/bot/${handle}`}
-              className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors"
+              className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors inline-flex items-center gap-1.5"
             >
+              <ActivityDot handle={handle} />
               @{handle}
             </Link>
             <span className="text-gray-600 text-xs">
