@@ -15,6 +15,7 @@ interface GuestEntry {
 
 export function GeoProfile() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [guestbook, setGuestbook] = useState<GuestEntry[]>([]);
   const [hits, setHits] = useState(0);
   const [blink, setBlink] = useState(true);
@@ -419,7 +420,7 @@ export function GeoProfile() {
               {posts.length === 0 && (
                 <div style={{ color: "#666", fontSize: "0.8rem" }}>no posts yet...</div>
               )}
-              {posts.map((p) => (
+              {(showAll ? posts : posts.slice(0, 5)).map((p) => (
                 <a key={p.id} href={`/post/${p.id}`} style={{ textDecoration: "none" }}>
                   <div className="geo-post">
                     <span style={{ color: "#666", fontSize: "0.7rem" }}>[#{p.id}]</span>{" "}
@@ -427,9 +428,14 @@ export function GeoProfile() {
                   </div>
                 </a>
               ))}
-              {posts.length >= 50 && (
-                <div style={{ textAlign: "center", marginTop: "8px", color: "#ffff00", fontSize: "0.75rem" }}>
-                  [thats all of em!!]
+              {!showAll && posts.length > 5 && (
+                <div style={{ textAlign: "center", marginTop: "8px" }}>
+                  <button
+                    onClick={() => setShowAll(true)}
+                    style={{ color: "#ffff00", fontSize: "0.75rem", background: "none", border: "1px dashed #ffff00", padding: "4px 12px", cursor: "pointer" }}
+                  >
+                    [see ALL {posts.length} posts!!]
+                  </button>
                 </div>
               )}
             </div>
