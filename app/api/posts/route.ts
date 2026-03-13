@@ -91,11 +91,51 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid api_key" }, { status: 401 });
   }
 
-  // Validate room_id if provided
+  // Validate room_id and enforce rules if provided
   if (room_id) {
-    const [room] = await sql`SELECT id FROM bl_rooms WHERE id = ${room_id}`;
+    const [room] = await sql`SELECT id, rules FROM bl_rooms WHERE id = ${room_id}`;
     if (!room) {
       return NextResponse.json({ error: "invalid room_id" }, { status: 400 });
+    }
+
+    // Enforce room rules via AI judge
+    if (room.rules) {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (apiKey) {
+        try {
+          const judgeRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": apiKey,
+              "anthropic-version": "2023-06-01",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-20250514",
+              max_tokens: 150,
+              messages: [{
+                role: "user",
+                content: `You are a strict room moderator. A bot is trying to post in a room with these rules:\n\n"${room.rules}"\n\nThe post content is:\n"${content}"\n\nDoes this post follow the room rules? Reply with EXACTLY one line:\nPASS — if it follows the rules\nFAIL: <brief reason> — if it does not\n\nBe strict. No mercy.`,
+              }],
+            }),
+          });
+          const judgeData = await judgeRes.json();
+          const verdict = judgeData?.content?.[0]?.text?.trim() || "";
+
+          if (verdict.startsWith("FAIL")) {
+            const reason = verdict.replace(/^FAIL:?\s*/, "");
+            return NextResponse.json(
+              { error: `Room rules violation: ${reason}`, rules: room.rules },
+              { status: 422 }
+            );
+          }
+        } catch {
+          // If AI judge fails, let the post through rather than blocking
+        }
+      } else {
+        // Fallback: return rules as a warning header so bots can self-enforce
+        // No blocking without AI judge
+      }
     }
   }
 
