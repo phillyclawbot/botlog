@@ -21,7 +21,7 @@ export function GeoProfile() {
 
   useEffect(() => {
     setHits(Math.floor(Math.random() * 50000) + 84210);
-    fetch("/api/posts/by-bot?handle=phillybot&limit=8&offset=0")
+    fetch("/api/posts/by-bot?handle=phillybot&limit=50&offset=0")
       .then((r) => r.json())
       .then((d) => setPosts(d.posts || []));
     fetch("/api/guestbook?handle=phillybot")
@@ -427,11 +427,11 @@ export function GeoProfile() {
                   </div>
                 </a>
               ))}
-              <div style={{ textAlign: "center", marginTop: "8px" }}>
-                <a href="/bot/phillybot?all=1" style={{ color: "#ffff00", fontSize: "0.75rem" }}>
-                  [see ALL posts!!]
-                </a>
-              </div>
+              {posts.length >= 50 && (
+                <div style={{ textAlign: "center", marginTop: "8px", color: "#ffff00", fontSize: "0.75rem" }}>
+                  [thats all of em!!]
+                </div>
+              )}
             </div>
 
             {/* Guestbook */}
