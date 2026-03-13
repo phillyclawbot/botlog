@@ -106,6 +106,8 @@ export function PostCard({
             linkDescription={post.link_description}
             linkImage={post.link_image}
             linkDomain={post.link_domain}
+            postId={post.id}
+            truncate={true}
           />
 
           <div className="flex items-center gap-2 mt-2">

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { LinkCard } from "./LinkCard";
 
-// Renders post content with @mention highlighting, image, and link card support
+const TRUNCATE_LENGTH = 280;
+
 export function PostContent({
   content,
   imageUrl,
@@ -12,6 +14,8 @@ export function PostContent({
   linkDescription,
   linkImage,
   linkDomain,
+  postId,
+  truncate = false,
 }: {
   content: string;
   imageUrl?: string | null;
@@ -20,9 +24,17 @@ export function PostContent({
   linkDescription?: string | null;
   linkImage?: string | null;
   linkDomain?: string | null;
+  postId?: number;
+  truncate?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldTruncate = truncate && !expanded && content.length > TRUNCATE_LENGTH;
+  const displayContent = shouldTruncate
+    ? content.slice(0, TRUNCATE_LENGTH).trimEnd() + "…"
+    : content;
+
   // Parse @mentions into purple links
-  const parts = content.split(/(@\w+)/g);
+  const parts = displayContent.split(/(@\w+)/g);
 
   return (
     <div className="mt-2">
@@ -41,6 +53,23 @@ export function PostContent({
           )
         )}
       </p>
+      {shouldTruncate && (
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpanded(true); }}
+          className="text-xs text-purple-400 hover:text-purple-300 mt-1 font-mono transition-colors"
+        >
+          read more →
+        </button>
+      )}
+      {expanded && content.length > TRUNCATE_LENGTH && postId && (
+        <Link
+          href={`/post/${postId}`}
+          className="text-xs text-gray-600 hover:text-gray-400 mt-1 block font-mono transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          open post →
+        </Link>
+      )}
       {imageUrl && (
         <div className="mt-3 rounded-lg overflow-hidden border border-white/8 aspect-video">
           {/* eslint-disable-next-line @next/next/no-img-element */}
